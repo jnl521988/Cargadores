@@ -78,7 +78,7 @@ function updateChargerList(){
     list.innerHTML = '';
     chargers.forEach((c,i) => {
         const li = document.createElement('li');
-        li.textContent = `${c.nombre} - ${c.edad} años - ${c.telefono} - ${c.estatura}cm - ${c.colorTunica} - ${c.ubicacion}`;
+        li.textContent = `${c.nombre} - ${c.edad} años - ${c.telefono} - ${c.estatura}m - ${c.colorTunica} - ${c.ubicacion}`;
         const editBtn = document.createElement('button'); editBtn.textContent='Editar'; editBtn.onclick = () => openModal(i);
         const delBtn = document.createElement('button'); delBtn.textContent='Borrar'; delBtn.onclick = () => deleteCharger(i);
         li.appendChild(editBtn);
@@ -474,16 +474,16 @@ li.addEventListener('touchstart', () => {
 function exportPDF(){
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    doc.text("Datos del Paso",10,10);
+    doc.text("DATOS DEL PASO",10,10);
     doc.text("Nombre: "+paso.nombre,10,20);
-    doc.text("Fecha: "+paso.fecha,10,30);
-    doc.text("Medidas: "+paso.medidas,10,40);
+    doc.text("Fecha Ejecución: "+paso.fecha,10,30);
+    doc.text("Medidas: "+paso.medidas+"m",10,40);
     doc.text("Peso Total: "+paso.pesoTotal+" kg",10,50);
     doc.text("Número de Cargadores: "+paso.numCargadores,10,60);
     doc.text("Peso Medio por Cargador: "+paso.pesoMedio+" kg",10,70);
-    doc.text("Lista de Cargadores:",10,80);
+    doc.text("LISTA DE CARGADORES:",10,80);
     chargers.forEach((c,i)=>{
-        doc.text(`${i+1}. ${c.nombre}, ${c.edad} años, ${c.telefono}, ${c.estatura}cm, ${c.colorTunica}, ${c.ubicacion}`,10,90+i*10);
+        doc.text(`${i+1}. ${c.nombre}, ${c.edad} años, ${c.telefono}, ${c.estatura}m, ${c.colorTunica}, ${c.ubicacion}`,10,90+i*10);
     });
     doc.save("Paso_Cargadores.pdf");
 }

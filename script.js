@@ -3,6 +3,8 @@
 // ------------------------
 let chargers = [];
 let editIndex = null;
+let draggedIndex = null;
+
 
 let paso = {
     nombre: '',
@@ -122,9 +124,6 @@ if(nombreMapaInput){
     });
 }
 
-// Llamar al cargar datos del paso para sincronizar
-window.addEventListener('load', actualizarNombrePasoMapa);
-
 
 function guardarPaso() {
     paso.nombre = document.getElementById('nombrePaso').value;
@@ -175,6 +174,8 @@ function cargarDatosPaso() {
     const bloqueado = localStorage.getItem('pasoBloqueado') !== 'false'; // si no existe, bloqueado por defecto
     document.querySelectorAll('#pasoForm input, #pasoForm select, #pasoForm textarea')
         .forEach(i => i.disabled = bloqueado);
+        actualizarNombrePasoMapa();
+
 }
 
 
@@ -194,9 +195,13 @@ document.getElementById('imagenPaso').addEventListener('change', function(){
 });
 
 // Actualización dinámica de cálculos y mapa
-document.getElementById('pesoTotal').addEventListener('input', actualizarDatosPaso);
-document.getElementById('numBanzos').addEventListener('input', actualizarDatosPaso);
-document.getElementById('numCargadoresPorBanzo').addEventListener('input', actualizarDatosPaso);
+['pesoTotal','numBanzos','numCargadoresPorBanzo'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return; // por seguridad
+    el.addEventListener('input', actualizarDatosPaso);
+    el.addEventListener('change', actualizarDatosPaso);
+});
+
 
 function actualizarDatosPaso(){
     const pesoTotal = parseFloat(document.getElementById('pesoTotal').value) || 0;
@@ -208,6 +213,7 @@ function actualizarDatosPaso(){
     document.getElementById('pesoMedio').value = total > 0 ? (pesoTotal / total).toFixed(2) : 0;
 
     crearMapaBanzos(numBanzos, numPorBanzo);
+    
 }
 
 // ------------------------
@@ -278,8 +284,37 @@ function crearMapaBanzos(numBanzos, numPorBanzo){
                 // Drag & Drop
                 slot.ondragover = e => e.preventDefault();
                 slot.ondrop = e => {
+                    slot.addEventListener('touchend', () => {
+    if(draggedIndex === null) return;
+
+    const c = chargers[draggedIndex];
+    const mapUbicacion = { 'delantera':'delantero', 'trasera':'trasero' };
+
+    if(mapUbicacion[c.ubicacion.toLowerCase()] !== tipo){
+        alert(`Este cargador es ${c.ubicacion} y no puede colocarse aquí.`);
+        return;
+    }
+
+    document.querySelectorAll('.slot').forEach(s => {
+        if(s.dataset.asignado === c.nombre){
+            s.textContent = '';
+            s.style.background = '#eee';
+            s.dataset.asignado = '';
+        }
+    });
+
+    slot.textContent = c.nombre;
+    slot.style.background = c.colorTunica;
+    slot.style.color = 'white';
+    slot.dataset.asignado = c.nombre;
+
+    guardarSlots();
+    draggedIndex = null;
+});
+
                     e.preventDefault();
-                    const index = e.dataTransfer.getData('text');
+                   const index = draggedIndex !== null ? draggedIndex : e.dataTransfer.getData('text');
+
                     const c = chargers[index];
                     const mapUbicacion = { 'delantera':'delantero', 'trasera':'trasero' };
 
@@ -341,6 +376,8 @@ function guardarSlots() {
         }
     });
     localStorage.setItem('slots', JSON.stringify(slotsData));
+    draggedIndex = null;
+
 }
 
 // Cargar slots guardados
@@ -407,7 +444,17 @@ function renderMapChargerList(){
             const li = document.createElement('li');
             li.textContent = `${i + 1}. ${c.nombre}`; // numeración manual
             li.draggable = true;
-            li.ondragstart = e => e.dataTransfer.setData('text', chargers.indexOf(c));
+
+li.ondragstart = e => {
+    draggedIndex = chargers.indexOf(c);
+    e.dataTransfer.setData('text', draggedIndex);
+};
+
+// Soporte móvil
+li.addEventListener('touchstart', () => {
+    draggedIndex = chargers.indexOf(c);
+});
+
             ul.appendChild(li);
         });
         div.appendChild(ul);
@@ -444,14 +491,41 @@ function exportPDF(){
 // ------------------------
 // EXPORT JPG
 // ------------------------
-function exportMapJPG(){
-    html2canvas(document.getElementById('mapArea')).then(canvas=>{
+function exportMapJPG() {
+
+    const mapArea = document.getElementById('mapArea');
+    const nombrePaso = document.getElementById('nombrePasoMapaInput')?.value || 'Mapa del Paso';
+
+    html2canvas(mapArea).then(canvasMapa => {
+
+        const paddingTop = 60; // espacio para el título
+        const nuevoCanvas = document.createElement('canvas');
+        const ctx = nuevoCanvas.getContext('2d');
+
+        nuevoCanvas.width = canvasMapa.width;
+        nuevoCanvas.height = canvasMapa.height + paddingTop;
+
+        // Fondo blanco
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, nuevoCanvas.width, nuevoCanvas.height);
+
+        // Título
+        ctx.fillStyle = "#000000";
+        ctx.font = "bold 28px Segoe UI";
+        ctx.textAlign = "center";
+        ctx.fillText(nombrePaso, nuevoCanvas.width / 2, 40);
+
+        // Dibujar mapa debajo
+        ctx.drawImage(canvasMapa, 0, paddingTop);
+
+        // Descargar JPG
         const link = document.createElement('a');
-        link.download = 'MapaPaso.jpg';
-        link.href = canvas.toDataURL();
+        link.download = "mapa_paso.jpg";
+        link.href = nuevoCanvas.toDataURL("image/jpeg", 0.95);
         link.click();
     });
 }
+
 
 // ------------------------
 // INICIALIZACIÓN

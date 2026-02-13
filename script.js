@@ -148,6 +148,10 @@ function guardarPaso() {
 
     // Crear mapa automáticamente
     crearMapaBanzos(paso.numBanzos, paso.numCargadoresPorBanzo);
+    if(nombreMapaInput){
+    nombreMapaInput.value = paso.nombre;
+}
+
 }
 
 
@@ -184,15 +188,20 @@ document.getElementById('imagenPaso').addEventListener('change', function(){
     const file = this.files[0];
     if(file){
         const reader = new FileReader();
-        reader.onload = e=>{
+        reader.onload = e => {
             paso.imagen = e.target.result;
+
             const img = document.getElementById('previewImagen');
             img.src = paso.imagen;
             img.style.display='block';
+
+            // IMPORTANTE: guardar al momento
+            localStorage.setItem('paso', JSON.stringify(paso));
         };
         reader.readAsDataURL(file);
     }
 });
+
 
 // Actualización dinámica de cálculos y mapa
 ['pesoTotal','numBanzos','numCargadoresPorBanzo'].forEach(id=>{
@@ -246,6 +255,7 @@ function crearMapaBanzos(numBanzos, numPorBanzo){
 
     mapArea.appendChild(delanterosDiv);
     mapArea.appendChild(traserosDiv);
+    
 
     // Dividir banzos en delanteros y traseros
     const mitad = Math.ceil(numBanzos / 2);
@@ -272,6 +282,9 @@ function crearMapaBanzos(numBanzos, numPorBanzo){
                 slot.style.width = '120px';
                 slot.style.height = '80px';
                 slot.style.background = '#eee';
+                const banzoSlotsDiv = document.createElement('div');
+banzoSlotsDiv.className = 'banzo-slots';
+
                 slot.style.border = '1px solid #ccc';
                 slot.style.borderRadius = '5px';
                 slot.style.display = 'flex';
@@ -284,33 +297,6 @@ function crearMapaBanzos(numBanzos, numPorBanzo){
                 // Drag & Drop
                 slot.ondragover = e => e.preventDefault();
                 slot.ondrop = e => {
-                    slot.addEventListener('touchend', () => {
-    if(draggedIndex === null) return;
-
-    const c = chargers[draggedIndex];
-    const mapUbicacion = { 'delantera':'delantero', 'trasera':'trasero' };
-
-    if(mapUbicacion[c.ubicacion.toLowerCase()] !== tipo){
-        alert(`Este cargador es ${c.ubicacion} y no puede colocarse aquí.`);
-        return;
-    }
-
-    document.querySelectorAll('.slot').forEach(s => {
-        if(s.dataset.asignado === c.nombre){
-            s.textContent = '';
-            s.style.background = '#eee';
-            s.dataset.asignado = '';
-        }
-    });
-
-    slot.textContent = c.nombre;
-    slot.style.background = c.colorTunica;
-    slot.style.color = 'white';
-    slot.dataset.asignado = c.nombre;
-
-    guardarSlots();
-    draggedIndex = null;
-});
 
                     e.preventDefault();
                    const index = draggedIndex !== null ? draggedIndex : e.dataTransfer.getData('text');
@@ -335,6 +321,8 @@ function crearMapaBanzos(numBanzos, numPorBanzo){
 
                     // Asignar cargador al slot
                     slot.textContent = c.nombre;
+ajustarTextoEnSlot(slot);
+
                     slot.style.background = c.colorTunica;
                     slot.style.color = 'white';
                     slot.dataset.asignado = c.nombre;
@@ -343,11 +331,14 @@ function crearMapaBanzos(numBanzos, numPorBanzo){
                 };
 
                 banzo.appendChild(slot);
+                
+                
             }
 
             div.appendChild(banzo);
         }
     }
+    
 
     // Crear delanteros y traseros
     crearBanzos(delanterosDiv, mitad, 'delantero');
@@ -355,6 +346,8 @@ function crearMapaBanzos(numBanzos, numPorBanzo){
 
     // Restaurar slots guardados
     cargarSlots();
+    activarDragMovil();
+
 }
 
 // Guardar estado de los slots
@@ -399,6 +392,8 @@ function cargarSlots() {
                 if(slot){
                     slot.dataset.asignado = s.nombre;
                     slot.textContent = s.nombre;
+                    ajustarTextoEnSlot(slot);
+
                     const c = chargers.find(c => c.nombre === s.nombre);
                     if(c){
                         slot.style.background = c.colorTunica;
@@ -536,5 +531,85 @@ window.onload = ()=>{
     if(paso.numBanzos && paso.numCargadoresPorBanzo){
         crearMapaBanzos(paso.numBanzos, paso.numCargadoresPorBanzo);
          cargarSlots(); // restaurar slots
+         actualizarNombrePasoMapa();
+
     }
 };
+// ===== DRAG PARA MÓVIL =====
+function activarDragMovil() {
+
+    document.querySelectorAll('#mapChargerList li').forEach(li => {
+
+        li.addEventListener('touchstart', e => {
+            li.classList.add('dragging');
+        });
+
+        li.addEventListener('touchmove', e => {
+            const touch = e.touches[0];
+
+            li.style.position = 'absolute';
+            li.style.zIndex = 1000;
+            li.style.left = (touch.clientX - 40) + 'px';
+            li.style.top = (touch.clientY - 20) + 'px';
+        });
+
+     li.addEventListener('touchend', e => {
+    li.classList.remove('dragging');
+
+    const touch = e.changedTouches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+
+    if (element && element.classList.contains('slot') && draggedIndex !== null) {
+
+        const c = chargers[draggedIndex];
+        const tipoSlot = element.dataset.tipo;
+        const mapUbicacion = { 'delantera':'delantero', 'trasera':'trasero' };
+
+        // Validar ubicación
+        if(mapUbicacion[c.ubicacion.toLowerCase()] !== tipoSlot){
+            alert(`Este cargador es ${c.ubicacion} y no puede colocarse aquí.`);
+            return;
+        }
+
+        // Limpiar anterior
+        document.querySelectorAll('.slot').forEach(s => {
+            if(s.dataset.asignado === c.nombre){
+                s.textContent = '';
+                s.style.background = '#eee';
+                s.dataset.asignado = '';
+            }
+        });
+
+        // Asignar
+        element.textContent = c.nombre;
+        ajustarTextoEnSlot(element);
+
+        element.style.background = c.colorTunica;
+        element.style.color = 'white';
+        element.dataset.asignado = c.nombre;
+
+        guardarSlots();
+        draggedIndex = null;
+    }
+
+    // reset posición
+    li.style.position = '';
+    li.style.left = '';
+    li.style.top = '';
+    li.style.zIndex = '';
+});
+
+
+    });
+}
+function ajustarTextoEnSlot(slot) {
+    let fontSize = 14; // tamaño inicial
+    slot.style.fontSize = fontSize + 'px';
+
+    while (slot.scrollWidth > slot.clientWidth || slot.scrollHeight > slot.clientHeight) {
+        fontSize--;
+        slot.style.fontSize = fontSize + 'px';
+
+        if (fontSize <= 8) break; // mínimo
+    }
+}

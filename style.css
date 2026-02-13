@@ -142,29 +142,43 @@ nav button:hover {
     text-align:center;
     margin-top:0;
 }
+.banzo-slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 6px;
+    width: 100%;
+}
 
 #mapChargerList li {
     cursor: grab;
 }
+
 /* ------------------------
    ESTILO DEL MAPA - SLOT
 ------------------------ */
 .slot {
-    width: 80px;
-    height: 50px;
+    width: 100%;
+    aspect-ratio: 4 / 3;
     background: #eee;
-    border: 1px solid #ccc;
+    border: 2px solid #3498db; /* borde color */
     border-radius: 5px;
+
     display: flex;
     justify-content: center;
     align-items: center;
+
     font-size: 12px;
     font-weight: bold;
     text-align: center;
+
     overflow: hidden;
-    white-space: nowrap;
-    color: black; /* Nombre de cargador en negro */
+    white-space: normal;
+    word-break: break-word;
+    padding: 2px;
+
+    color: black;
 }
+
 
 /* Si quieres que el fondo cambie según el color de túnica pero el texto siempre negro */
 .slot[data-asignado] {
@@ -239,4 +253,66 @@ label[for="nombrePasoMapaInput"] {
     font-size: 16px;
     color: #2c3e50;
     margin-right: 8px;
+}
+/* ===== AJUSTE MAPA RESPONSIVE (MÓVIL) ===== */
+
+/* Móvil */
+@media (max-width: 768px) {
+
+    #mapArea {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .banzos-container {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+
+    .banzo-slots {
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    }
+}
+
+/* Los slots dentro de cada banzo se apilan verticalmente y se ajustan */
+.banzo {
+    display: flex;
+    flex-direction: column;  /* slots en columna */
+    align-items: center;     /* centrar horizontal */
+    justify-content: flex-start;
+    gap: 5px;                /* separación entre slots */
+    height: 100%;            /* ocupa todo el banzo */
+}
+
+/* Slots individuales */
+.slot {
+    width: 90%;              /* ancho relativo al banzo */
+    aspect-ratio: 4 / 3;     /* mantiene proporción */
+    background: #eee;
+    border: 2px solid #3498db;
+    border-radius: 5px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+    font-size: 12px;
+    font-weight: bold;
+
+    white-space: normal;
+    word-break: break-word;
+    padding: 2px;
+    overflow: hidden;
+
+    color: black;
+}
+
+/* Ajuste en móvil */
+@media (max-width: 768px) {
+    .slot {
+        width: 100%;
+        aspect-ratio: 1 / 1; /* cuadrados en móvil */
+        font-size: 10px;
+    }
 }

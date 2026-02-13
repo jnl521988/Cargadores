@@ -86,9 +86,8 @@ nav button:hover {
     padding: 8px;
     border-radius: 5px;
     border: 1px solid #ccc;
-    background-color: white;   /* Esto hace que el fondo sea blanco */
+    background-color: white;
 }
-
 
 .form-actions {
     text-align: right;
@@ -112,20 +111,12 @@ nav button:hover {
     border: 2px solid #333;
     height: 400px;
     position: relative;
-}
-
-#mapChargerList {
-    margin-top: 10px;
-}
-#mapArea {
-    border: 2px solid #333;
-    height: 400px;
-    position: relative;
     display: flex;
     justify-content: space-between;
     padding:10px;
     background: #e5e5e5;
     border-radius: 10px;
+    overflow-x: hidden;
 }
 
 .banzos-container {
@@ -142,10 +133,12 @@ nav button:hover {
     text-align:center;
     margin-top:0;
 }
+
 .banzo-slots {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-    gap: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
     width: 100%;
 }
 
@@ -153,54 +146,45 @@ nav button:hover {
     cursor: grab;
 }
 
-/* ------------------------
-   ESTILO DEL MAPA - SLOT
------------------------- */
+/* Slots */
 .slot {
-    width: 100%;
+    width: 90%;
     aspect-ratio: 4 / 3;
     background: #eee;
-    border: 2px solid #3498db; /* borde color */
+    border: 2px solid #3498db;
     border-radius: 5px;
-
     display: flex;
     justify-content: center;
     align-items: center;
-
+    text-align: center;
     font-size: 12px;
     font-weight: bold;
-    text-align: center;
-
     overflow: hidden;
     white-space: normal;
     word-break: break-word;
     padding: 2px;
-
     color: black;
 }
 
-
-/* Si quieres que el fondo cambie según el color de túnica pero el texto siempre negro */
 .slot[data-asignado] {
     color: black !important;
 }
 
-/* Botón Nuevo Cargador */
-button#nuevoCargador, /* si usas un id específico */
-button { 
+/* Botones */
+button#nuevoCargador,
+button {
     padding: 10px 20px;
-    background: #6b5b95;          /* color de fondo */
-    color: white;                 /* texto blanco */
+    background: #6b5b95;
+    color: white;
     font-size: 16px;
     font-weight: bold;
     border: none;
-    border-radius: 8px;           /* esquinas redondeadas */
+    border-radius: 8px;
     cursor: pointer;
     box-shadow: 0 4px 6px rgba(0,0,0,0.2);
     transition: all 0.2s ease-in-out;
 }
 
-/* Hover efecto */
 button#nuevoCargador:hover,
 button:hover {
     background: #5a4a7f;
@@ -208,17 +192,14 @@ button:hover {
     box-shadow: 0 6px 8px rgba(0,0,0,0.3);
 }
 
-/* Presionar */
 button#nuevoCargador:active,
 button:active {
     transform: translateY(1px);
     box-shadow: 0 3px 5px rgba(0,0,0,0.2);
 }
 
-
-/* Botones de abrir modal */
 #openModalBtn {
-    background-color: #2196F3; /* Azul */
+    background-color: #2196F3;
     color: white;
     border: none;
     padding: 6px 12px;
@@ -230,97 +211,48 @@ button:active {
 #openModalBtn:hover {
     background-color: #1976D2;
 }
-/* Estilo del input de nombre del paso */
+
+/* Input nombre paso mapa */
 #nombrePasoMapaInput {
     padding: 10px 12px;
     font-size: 16px;
     border-radius: 6px;
-    border: 2px solid #3498db; /* borde azul */
-    background-color: #fff;     /* fondo blanco */
-    color: #2c3e50;             /* texto oscuro */
+    border: 2px solid #3498db;
+    background-color: #fff;
+    color: #2c3e50;
     outline: none;
     transition: border 0.2s;
 }
 
-/* Cambiar color del borde al enfocarse */
 #nombrePasoMapaInput:focus {
-    border-color: #2980b9; /* azul más oscuro al focus */
+    border-color: #2980b9;
 }
 
-/* Label */
 label[for="nombrePasoMapaInput"] {
     font-weight: bold;
     font-size: 16px;
     color: #2c3e50;
     margin-right: 8px;
 }
-/* ===== AJUSTE MAPA RESPONSIVE (MÓVIL) ===== */
 
-/* Móvil */
-@media (max-width: 768px) {
-
-    #mapArea {
-        flex-direction: column;
-        height: auto;
-    }
-
-    .banzos-container {
-        width: 100%;
-        margin-bottom: 15px;
-    }
-
-    .banzo-slots {
-        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-    }
-}
-
-/* Los slots dentro de cada banzo se apilan verticalmente y se ajustan */
-.banzo {
-    display: flex;
-    flex-direction: column;  /* slots en columna */
-    align-items: center;     /* centrar horizontal */
-    justify-content: flex-start;
-    gap: 5px;                /* separación entre slots */
-    height: 100%;            /* ocupa todo el banzo */
-}
-
-/* Slots individuales */
-.slot {
-    width: 90%;              /* ancho relativo al banzo */
-    aspect-ratio: 4 / 3;     /* mantiene proporción */
-    background: #eee;
-    border: 2px solid #3498db;
-    border-radius: 5px;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-
-    font-size: 12px;
-    font-weight: bold;
-
-    white-space: normal;
-    word-break: break-word;
-    padding: 2px;
-    overflow: hidden;
-
-    color: black;
-}
-
-/* Ajuste en móvil */
+/* ======================= */
+/* Móvil - Scroll horizontal */
 @media (max-width: 768px) {
     #mapArea {
-        flex-direction: row;       /* mantener fila */
-        justify-content: flex-start; /* los contenedores se alinean al inicio */
-        overflow-x: auto;          /* habilita scroll horizontal */
+        flex-direction: row;
+        overflow-x: auto;
         height: auto;
         padding-bottom: 10px;
     }
 
     .banzos-container {
-        min-width: 300px;          /* ancho mínimo para cada contenedor */
-        margin-right: 10px;        /* separación entre delanteros y traseros */
+        min-width: 300px;
+        margin-right: 10px;
+    }
+
+    .slot {
+        width: 80px;
+        height: 60px;
+        font-size: 10px;
     }
 }
-

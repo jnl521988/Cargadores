@@ -171,11 +171,16 @@ function cargarDatosPaso() {
     // Siempre restaurar la imagen
     const img = document.getElementById('previewImagen');
     if(paso.imagen){
-        img.src = paso.imagen;
-        img.style.display = 'block';
-    } else {
-        img.style.display = 'none';
-    }
+    const img = document.getElementById('previewImagen');
+    img.src = paso.imagen;
+    img.style.display='block';
+
+    // Resetear input de tipo file
+    document.getElementById('imagenPaso').value = '';
+} else {
+    img.style.display='none';
+}
+
 
     // Bloquear o habilitar inputs según el estado guardado
     const bloqueado = localStorage.getItem('pasoBloqueado') !== 'false'; // si no existe, bloqueado por defecto

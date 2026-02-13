@@ -310,26 +310,17 @@ label[for="nombrePasoMapaInput"] {
 
 /* Ajuste en móvil */
 @media (max-width: 768px) {
-
-    /* El mapa sigue en fila, pero con scroll horizontal */
     #mapArea {
         flex-direction: row;       /* mantener fila */
-        overflow-x: auto;          /* scroll horizontal */
+        justify-content: flex-start; /* los contenedores se alinean al inicio */
+        overflow-x: auto;          /* habilita scroll horizontal */
         height: auto;
-        padding-bottom: 10px;      /* espacio por si aparece scrollbar */
+        padding-bottom: 10px;
     }
 
-    /* Cada contenedor no se achique demasiado */
     .banzos-container {
-        min-width: 300px;          /* ancho mínimo para que se vean bien los slots */
+        min-width: 300px;          /* ancho mínimo para cada contenedor */
         margin-right: 10px;        /* separación entre delanteros y traseros */
-    }
-
-    /* Ajustar tamaño de los slots en móvil */
-    .slot {
-        width: 80px;
-        height: 60px;
-        font-size: 10px;
     }
 }
 

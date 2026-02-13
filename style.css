@@ -310,9 +310,19 @@ label[for="nombrePasoMapaInput"] {
 
 /* Ajuste en móvil */
 @media (max-width: 768px) {
+    #mapArea {
+        flex-direction: row; /* mantener fila */
+        overflow-x: auto;    /* scroll horizontal */
+        height: auto;
+    }
+    .banzos-container {
+        min-width: 300px;   /* que no se achique demasiado */
+    }
+}
+@media (max-width: 768px) {
     .slot {
-        width: 100%;
-        aspect-ratio: 1 / 1; /* cuadrados en móvil */
+        width: 80px;
+        height: 60px;
         font-size: 10px;
     }
 }

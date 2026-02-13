@@ -5,6 +5,7 @@ let chargers = [];
 let editIndex = null;
 let draggedIndex = null;
 
+
 let paso = {
     nombre: '',
     fecha: '',
@@ -23,13 +24,6 @@ let paso = {
 function showSection(section) {
     document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
     document.getElementById(section).style.display = 'block';
-
-    // Resetear botones
-    document.querySelectorAll('button').forEach(btn => {
-        btn.style.transform = '';
-        btn.style.boxShadow = '';
-    });
-
     if(section === 'mapa') renderMapChargerList();
     if(section === 'paso') cargarDatosPaso();
 }
@@ -109,24 +103,30 @@ function cargarChargers(){
 // ------------------------
 function habilitarEdicion() {
     document.querySelectorAll('#pasoForm input, #pasoForm select, #pasoForm textarea').forEach(i => i.disabled = false);
+    // Guardar estado desbloqueado
     localStorage.setItem('pasoBloqueado', 'false');
 }
-
-// Input nombre paso mapa
+// ------------------------
+// INPUT MANUAL DEL NOMBRE DEL PASO EN EL MAPA
+// ------------------------
 const nombreMapaInput = document.getElementById('nombrePasoMapaInput');
 
+// Rellenar el input al cargar los datos del paso
 function actualizarNombrePasoMapa() {
     if(nombreMapaInput) nombreMapaInput.value = paso.nombre || '';
 }
 
+// Detectar cambios manuales en el input
 if(nombreMapaInput){
     nombreMapaInput.addEventListener('input', e => {
-        paso.nombre = e.target.value;
-        localStorage.setItem('paso', JSON.stringify(paso));
+        paso.nombre = e.target.value;                   // Actualiza el objeto paso
+        localStorage.setItem('paso', JSON.stringify(paso)); // Guarda en localStorage
     });
 }
 
+
 function guardarPaso() {
+    // 1. Actualizar todo el objeto paso desde los inputs
     paso.nombre = document.getElementById('nombrePaso').value;
     paso.fecha = document.getElementById('fechaPaso').value;
     paso.medidas = document.getElementById('medidas').value;
@@ -136,24 +136,33 @@ function guardarPaso() {
     paso.numCargadores = paso.numBanzos * paso.numCargadoresPorBanzo;
     paso.pesoMedio = paso.numCargadores > 0 ? (paso.pesoTotal / paso.numCargadores).toFixed(2) : 0;
 
-    document.getElementById('numCargadores').value = paso.numCargadores;
-    document.getElementById('pesoMedio').value = paso.pesoMedio;
+    // 2. Mantener la imagen actual
+    const previewImg = document.getElementById('previewImagen');
+    if(previewImg && previewImg.src) paso.imagen = previewImg.src;
 
+    // 3. Guardar en localStorage
     localStorage.setItem('paso', JSON.stringify(paso));
+    localStorage.setItem('pasoBloqueado', 'true'); // marcar como bloqueado
 
-    // Bloquear inputs
-    document.querySelectorAll('#pasoForm input, #pasoForm select, #pasoForm textarea').forEach(i => i.disabled = true);
-    localStorage.setItem('pasoBloqueado', 'true');
+    // 4. Bloquear todos los inputs
+    document.querySelectorAll('#pasoForm input, #pasoForm select, #pasoForm textarea')
+        .forEach(i => i.disabled = true);
 
+    // 5. Actualizar mapa automáticamente
     crearMapaBanzos(paso.numBanzos, paso.numCargadoresPorBanzo);
-    actualizarNombrePasoMapa();
+
+    // 6. Actualizar input del nombre en el mapa
+    if(nombreMapaInput) nombreMapaInput.value = paso.nombre;
 }
 
-// Cargar datos del paso
+
+
+
 function cargarDatosPaso() {
     const saved = localStorage.getItem('paso');
     if(saved) paso = JSON.parse(saved);
 
+    // Restaurar inputs
     document.getElementById('nombrePaso').value = paso.nombre;
     document.getElementById('fechaPaso').value = paso.fecha;
     document.getElementById('medidas').value = paso.medidas;
@@ -167,49 +176,63 @@ function cargarDatosPaso() {
     const img = document.getElementById('previewImagen');
     if(paso.imagen){
         img.src = paso.imagen;
-        img.style.display='block';
-    } else { img.style.display='none'; }
+        img.style.display = 'block';
+    } else {
+        img.style.display = 'none';
+    }
 
+    // Bloquear inputs según pasoBloqueado
     const bloqueado = localStorage.getItem('pasoBloqueado') !== 'false';
     document.querySelectorAll('#pasoForm input, #pasoForm select, #pasoForm textarea')
         .forEach(i => i.disabled = bloqueado);
 
+    // Actualizar input nombre en mapa
     actualizarNombrePasoMapa();
 
-    // Reset botones
-    document.querySelectorAll('#pasoForm button').forEach(btn=>{
-        btn.style.transform='';
-        btn.style.boxShadow='';
+    // Resetear estilo de botones
+    document.querySelectorAll('#pasoForm button').forEach(btn => {
+        btn.style.transform = '';
+        btn.style.boxShadow = '';
     });
+
+    // Restaurar mapa si hay banzos
+    if(paso.numBanzos && paso.numCargadoresPorBanzo){
+        crearMapaBanzos(paso.numBanzos, paso.numCargadoresPorBanzo);
+        cargarSlots(); // restaurar slots asignados
+    }
 }
 
-// ------------------------
-// IMAGEN PASO
-// ------------------------
+
+
+
+// Imagen paso
 document.getElementById('imagenPaso').addEventListener('change', function(){
     const file = this.files[0];
     if(file){
         const reader = new FileReader();
         reader.onload = e => {
             paso.imagen = e.target.result;
+
             const img = document.getElementById('previewImagen');
             img.src = paso.imagen;
             img.style.display='block';
+
+            // Guardar inmediatamente en localStorage
             localStorage.setItem('paso', JSON.stringify(paso));
         };
         reader.readAsDataURL(file);
     }
 });
 
-// ------------------------
-// ACTUALIZACIÓN DINÁMICA
-// ------------------------
+
+// Actualización dinámica de cálculos y mapa
 ['pesoTotal','numBanzos','numCargadoresPorBanzo'].forEach(id=>{
     const el = document.getElementById(id);
-    if(!el) return;
+    if(!el) return; // por seguridad
     el.addEventListener('input', actualizarDatosPaso);
     el.addEventListener('change', actualizarDatosPaso);
 });
+
 
 function actualizarDatosPaso(){
     const pesoTotal = parseFloat(document.getElementById('pesoTotal').value) || 0;
@@ -221,86 +244,144 @@ function actualizarDatosPaso(){
     document.getElementById('pesoMedio').value = total > 0 ? (pesoTotal / total).toFixed(2) : 0;
 
     crearMapaBanzos(numBanzos, numPorBanzo);
+    
 }
 
 // ------------------------
-// CREAR MAPA BANZOS
+// MAPA DINÁMICO FINAL
 // ------------------------
 function crearMapaBanzos(numBanzos, numPorBanzo){
     const mapArea = document.getElementById('mapArea');
     mapArea.innerHTML = '';
 
+    // Contenedores generales con título arriba
     const delanterosDiv = document.createElement('div');
-    delanterosDiv.className='banzos-container';
-    delanterosDiv.innerHTML='<h3>Delanteros</h3>';
+    delanterosDiv.className = 'banzos-container';
+    const tituloDelanteros = document.createElement('h3');
+    tituloDelanteros.textContent = 'Delanteros';
+    delanterosDiv.appendChild(tituloDelanteros);
+    delanterosDiv.style.display = 'flex';
+    delanterosDiv.style.flexDirection = 'row';
+    delanterosDiv.style.marginBottom = '20px';
+    delanterosDiv.style.alignItems = 'flex-start';
+
     const traserosDiv = document.createElement('div');
-    traserosDiv.className='banzos-container';
-    traserosDiv.innerHTML='<h3>Traseros</h3>';
+    traserosDiv.className = 'banzos-container';
+    const tituloTraseros = document.createElement('h3');
+    tituloTraseros.textContent = 'Traseros';
+    traserosDiv.appendChild(tituloTraseros);
+    traserosDiv.style.display = 'flex';
+    traserosDiv.style.flexDirection = 'row';
+    traserosDiv.style.marginBottom = '20px';
+    traserosDiv.style.alignItems = 'flex-start';
 
     mapArea.appendChild(delanterosDiv);
     mapArea.appendChild(traserosDiv);
+    
 
+    // Dividir banzos en delanteros y traseros
     const mitad = Math.ceil(numBanzos / 2);
     const restantes = numBanzos - mitad;
 
-    function crearBanzos(div, cantidad, tipo){
-        for(let i=0;i<cantidad;i++){
+    function crearBanzos(div, cantidadBanzos, tipo){
+        for(let i = 0; i < cantidadBanzos; i++){
             const banzo = document.createElement('div');
-            banzo.className='banzo';
-            banzo.dataset.tipo=tipo;
+            banzo.className = 'banzo';
+            banzo.dataset.tipo = tipo;
+            banzo.style.display = 'flex';
+            banzo.style.flexDirection = 'column'; // filas de slots
+            banzo.style.alignItems = 'center';
+            banzo.style.justifyContent = 'center';
+            banzo.style.border = '1px dashed transparent';
+            banzo.style.padding = '5px';
+            banzo.style.marginRight = '10px'; // espacio entre columnas
 
-            for(let j=0;j<numPorBanzo;j++){
+            for(let j = 0; j < numPorBanzo; j++){
                 const slot = document.createElement('div');
-                slot.className='slot';
-                slot.dataset.asignado='';
-                slot.dataset.tipo=tipo;
+                slot.className = 'slot';
+                slot.dataset.asignado = '';
+                slot.dataset.tipo = tipo;
+                slot.style.width = '120px';
+                slot.style.height = '80px';
+                slot.style.background = '#eee';
+                const banzoSlotsDiv = document.createElement('div');
+banzoSlotsDiv.className = 'banzo-slots';
 
+                slot.style.border = '1px solid #ccc';
+                slot.style.borderRadius = '5px';
+                slot.style.display = 'flex';
+                slot.style.justifyContent = 'center';
+                slot.style.alignItems = 'center';
+                slot.style.fontSize = '16px';
+                slot.style.fontWeight = 'bold';
+                slot.style.margin = '3px';
+
+                // Drag & Drop
                 slot.ondragover = e => e.preventDefault();
                 slot.ondrop = e => {
+
                     e.preventDefault();
-                    const index = draggedIndex !== null ? draggedIndex : e.dataTransfer.getData('text');
+                   const index = draggedIndex !== null ? draggedIndex : e.dataTransfer.getData('text');
+
                     const c = chargers[index];
                     const mapUbicacion = { 'delantera':'delantero', 'trasera':'trasero' };
-                    if(mapUbicacion[c.ubicacion.toLowerCase()]!==tipo){
+
+                    // Verificar ubicación correcta
+                    if(mapUbicacion[c.ubicacion.toLowerCase()] !== tipo){
                         alert(`Este cargador es ${c.ubicacion} y no puede colocarse aquí.`);
                         return;
                     }
-                    document.querySelectorAll('.slot').forEach(s=>{
-                        if(s.dataset.asignado===c.nombre){
-                            s.textContent=''; s.style.background='#eee'; s.dataset.asignado='';
+
+                    // Liberar cargador anterior
+                    document.querySelectorAll('.slot').forEach(s => {
+                        if(s.dataset.asignado === c.nombre){
+                            s.textContent = '';
+                            s.style.background = '#eee';
+                            s.dataset.asignado = '';
                         }
                     });
-                    slot.textContent=c.nombre;
-                    ajustarTextoEnSlot(slot);
-                    slot.style.background=c.colorTunica;
-                    slot.style.color='white';
-                    slot.dataset.asignado=c.nombre;
+
+                    // Asignar cargador al slot
+                    slot.textContent = c.nombre;
+ajustarTextoEnSlot(slot);
+
+                    slot.style.background = c.colorTunica;
+                    slot.style.color = 'white';
+                    slot.dataset.asignado = c.nombre;
+
                     guardarSlots();
                 };
+
                 banzo.appendChild(slot);
+                
+                
             }
+
             div.appendChild(banzo);
         }
     }
+    
 
+    // Crear delanteros y traseros
     crearBanzos(delanterosDiv, mitad, 'delantero');
     crearBanzos(traserosDiv, restantes, 'trasero');
 
+    // Restaurar slots guardados
     cargarSlots();
     activarDragMovil();
+
 }
 
-// ------------------------
-// GUARDAR/CARGAR SLOTS
-// ------------------------
+// Guardar estado de los slots
 function guardarSlots() {
-    const slotsData=[];
-    document.querySelectorAll('.slot').forEach(slot=>{
+    const slotsData = [];
+    document.querySelectorAll('.slot').forEach(slot => {
         if(slot.dataset.asignado){
             const banzo = slot.parentElement;
-            const contenedor = banzo.parentElement;
-            const banzoIndex = Array.from(contenedor.children).indexOf(banzo)-1;
+            const contenedor = banzo.parentElement; // banzos-container
+            const banzoIndex = Array.from(contenedor.children).indexOf(banzo) - 1; // restar 1 porque child[0] es h3
             const slotIndex = Array.from(banzo.children).indexOf(slot);
+
             slotsData.push({
                 nombre: slot.dataset.asignado,
                 tipo: slot.dataset.tipo,
@@ -310,28 +391,36 @@ function guardarSlots() {
         }
     });
     localStorage.setItem('slots', JSON.stringify(slotsData));
-    draggedIndex=null;
+    draggedIndex = null;
+
 }
 
-function cargarSlots(){
+// Cargar slots guardados
+function cargarSlots() {
     const saved = localStorage.getItem('slots');
     if(!saved) return;
-    const slotsData=JSON.parse(saved);
+    const slotsData = JSON.parse(saved);
 
-    slotsData.forEach(s=>{
-        const contenedor = s.tipo==='delantero'
+    slotsData.forEach(s => {
+        // obtener contenedor por tipo
+        const contenedor = s.tipo === 'delantero'
             ? document.querySelector('#mapArea .banzos-container:nth-of-type(1)')
             : document.querySelector('#mapArea .banzos-container:nth-of-type(2)');
+
         if(contenedor){
-            const banzo = contenedor.children[s.banzoIndex+1];
+            const banzo = contenedor.children[s.banzoIndex + 1]; // +1 porque child[0] es h3
             if(banzo){
                 const slot = banzo.children[s.slotIndex];
                 if(slot){
-                    slot.dataset.asignado=s.nombre;
-                    slot.textContent=s.nombre;
+                    slot.dataset.asignado = s.nombre;
+                    slot.textContent = s.nombre;
                     ajustarTextoEnSlot(slot);
-                    const c = chargers.find(c=>c.nombre===s.nombre);
-                    if(c){ slot.style.background=c.colorTunica; slot.style.color='white'; }
+
+                    const c = chargers.find(c => c.nombre === s.nombre);
+                    if(c){
+                        slot.style.background = c.colorTunica;
+                        slot.style.color = 'white';
+                    }
                 }
             }
         }
@@ -339,41 +428,48 @@ function cargarSlots(){
 }
 
 // ------------------------
-// RENDER LISTA PARA ARRASTRAR
+// LISTA PARA ARRASTRAR
 // ------------------------
 function renderMapChargerList(){
-    const mapList=document.getElementById('mapChargerList');
-    mapList.innerHTML='';
+    const mapList = document.getElementById('mapChargerList');
+    mapList.innerHTML = '';
 
+    // Crear contenedor flex para separar delanteros y traseros
     const container = document.createElement('div');
-    container.style.display='flex';
-    container.style.justifyContent='space-between';
+    container.style.display = 'flex';
+    container.style.justifyContent = 'space-between';
 
-    const delanterosDiv=document.createElement('div');
-    delanterosDiv.style.width='48%';
-    delanterosDiv.innerHTML='<h4>Delanteros</h4>';
+    // Contenedores internos
+    const delanterosDiv = document.createElement('div');
+    delanterosDiv.style.width = '48%';
+    delanterosDiv.innerHTML = '<h4>Delanteros</h4>';
+    const traserosDiv = document.createElement('div');
+    traserosDiv.style.width = '48%';
+    traserosDiv.innerHTML = '<h4>Traseros</h4>';
 
-    const traserosDiv=document.createElement('div');
-    traserosDiv.style.width='48%';
-    traserosDiv.innerHTML='<h4>Traseros</h4>';
+    // Filtrar cargadores
+    const delanteros = chargers.filter(c => c.ubicacion.toLowerCase() === 'delantera');
+    const traseros = chargers.filter(c => c.ubicacion.toLowerCase() === 'trasera');
 
-    const delanteros = chargers.filter(c=>c.ubicacion.toLowerCase()==='delantera');
-    const traseros = chargers.filter(c=>c.ubicacion.toLowerCase()==='trasera');
-
+    // Función para crear lista enumerada manualmente
     function crearLista(div, lista){
-        const ul=document.createElement('ul');
-        ul.style.paddingLeft='20px';
-        lista.forEach((c,i)=>{
-            const li=document.createElement('li');
-            li.textContent=`${i+1}. ${c.nombre}`;
-            li.draggable=true;
+        const ul = document.createElement('ul');
+        ul.style.paddingLeft = '20px'; // espacio para numeración
+        lista.forEach((c,i) => {
+            const li = document.createElement('li');
+            li.textContent = `${i + 1}. ${c.nombre}`; // numeración manual
+            li.draggable = true;
 
-            li.ondragstart=e=>{
-                draggedIndex=chargers.indexOf(c);
-                e.dataTransfer.setData('text', draggedIndex);
-            };
+li.ondragstart = e => {
+    draggedIndex = chargers.indexOf(c);
+    e.dataTransfer.setData('text', draggedIndex);
+};
 
-            li.addEventListener('touchstart', ()=>{ draggedIndex=chargers.indexOf(c); });
+// Soporte móvil
+li.addEventListener('touchstart', () => {
+    draggedIndex = chargers.indexOf(c);
+});
+
             ul.appendChild(li);
         });
         div.appendChild(ul);
@@ -388,65 +484,116 @@ function renderMapChargerList(){
 }
 
 // ------------------------
-// AJUSTE TEXTO SLOT
+// INICIALIZACIÓN
 // ------------------------
-function ajustarTextoEnSlot(slot){
-    let fontSize=14;
-    slot.style.fontSize=fontSize+'px';
-    while(slot.scrollWidth>slot.clientWidth || slot.scrollHeight>slot.clientHeight){
-        fontSize--;
-        slot.style.fontSize=fontSize+'px';
-        if(fontSize<=8) break;
-    }
-}
+window.onload = ()=>{
+    cargarDatosPaso();
+    cargarChargers();
+    if(paso.numBanzos && paso.numCargadoresPorBanzo){
+        crearMapaBanzos(paso.numBanzos, paso.numCargadoresPorBanzo);
+         cargarSlots(); // restaurar slots
+         actualizarNombrePasoMapa();
 
-// ------------------------
-// DRAG MÓVIL
-// ------------------------
-function activarDragMovil(){
-    document.querySelectorAll('#mapChargerList li').forEach(li=>{
-        li.addEventListener('touchstart',()=>{ li.classList.add('dragging'); });
-        li.addEventListener('touchmove',e=>{
-            const touch=e.touches[0];
-            li.style.position='absolute';
-            li.style.zIndex=1000;
-            li.style.left=(touch.clientX-40)+'px';
-            li.style.top=(touch.clientY-20)+'px';
+    }
+};
+// ===== DRAG PARA MÓVIL =====
+function activarDragMovil() {
+
+    document.querySelectorAll('#mapChargerList li').forEach(li => {
+
+        li.addEventListener('touchstart', e => {
+            li.classList.add('dragging');
         });
-        li.addEventListener('touchend',e=>{
-            li.classList.remove('dragging');
-            const touch=e.changedTouches[0];
-            const element=document.elementFromPoint(touch.clientX,touch.clientY);
-            if(element && element.classList.contains('slot') && draggedIndex!==null){
-                const c=chargers[draggedIndex];
-                const mapUbicacion={ 'delantera':'delantero', 'trasera':'trasero' };
-                if(mapUbicacion[c.ubicacion.toLowerCase()]!==element.dataset.tipo){
-                    alert(`Este cargador es ${c.ubicacion} y no puede colocarse aquí.`); return;
-                }
-                document.querySelectorAll('.slot').forEach(s=>{
-                    if(s.dataset.asignado===c.nombre){
-                        s.textContent=''; s.style.background='#eee'; s.dataset.asignado='';
-                    }
-                });
-                element.textContent=c.nombre;
-                ajustarTextoEnSlot(element);
-                element.style.background=c.colorTunica;
-                element.style.color='white';
-                element.dataset.asignado=c.nombre;
-                guardarSlots();
-                draggedIndex=null;
+
+        li.addEventListener('touchmove', e => {
+            const touch = e.touches[0];
+
+            li.style.position = 'absolute';
+            li.style.zIndex = 1000;
+            li.style.left = (touch.clientX - 40) + 'px';
+            li.style.top = (touch.clientY - 20) + 'px';
+        });
+
+     li.addEventListener('touchend', e => {
+    li.classList.remove('dragging');
+
+    const touch = e.changedTouches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+
+    if (element && element.classList.contains('slot') && draggedIndex !== null) {
+
+        const c = chargers[draggedIndex];
+        const tipoSlot = element.dataset.tipo;
+        const mapUbicacion = { 'delantera':'delantero', 'trasera':'trasero' };
+
+        // Validar ubicación
+        if(mapUbicacion[c.ubicacion.toLowerCase()] !== tipoSlot){
+            alert(`Este cargador es ${c.ubicacion} y no puede colocarse aquí.`);
+            return;
+        }
+
+        // Limpiar anterior
+        document.querySelectorAll('.slot').forEach(s => {
+            if(s.dataset.asignado === c.nombre){
+                s.textContent = '';
+                s.style.background = '#eee';
+                s.dataset.asignado = '';
             }
-            li.style.position=''; li.style.left=''; li.style.top=''; li.style.zIndex='';
         });
+
+        // Asignar
+        element.textContent = c.nombre;
+        ajustarTextoEnSlot(element);
+
+        element.style.background = c.colorTunica;
+        element.style.color = 'white';
+        element.dataset.asignado = c.nombre;
+
+        guardarSlots();
+        draggedIndex = null;
+    }
+
+    // reset posición
+    li.style.position = '';
+    li.style.left = '';
+    li.style.top = '';
+    li.style.zIndex = '';
+});
+
+
     });
 }
+function ajustarTextoEnSlot(slot) {
+    let fontSize = 14; // tamaño inicial
+    slot.style.fontSize = fontSize + 'px';
 
+    while (slot.scrollWidth > slot.clientWidth || slot.scrollHeight > slot.clientHeight) {
+        fontSize--;
+        slot.style.fontSize = fontSize + 'px';
+
+        if (fontSize <= 8) break; // mínimo
+    }
+}
+function showSection(section) {
+    document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+    document.getElementById(section).style.display = 'block';
+
+    // Resetear botones
+    document.querySelectorAll('button').forEach(btn => {
+        btn.classList.remove('active'); // si usas clases
+        btn.style.transform = '';
+        btn.style.boxShadow = '';
+    });
+
+    if(section === 'mapa') renderMapChargerList();
+    if(section === 'paso') cargarDatosPaso();
+}
 // ------------------------
 // EXPORT PDF
 // ------------------------
 function exportPDF(){
-    const { jsPDF }=window.jspdf;
-    const doc=new jsPDF();
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
     doc.text("DATOS DEL PASO",10,10);
     doc.text("Nombre: "+paso.nombre,10,20);
     doc.text("Fecha Ejecución: "+paso.fecha,10,30);
@@ -464,44 +611,37 @@ function exportPDF(){
 // ------------------------
 // EXPORT JPG
 // ------------------------
-function exportMapJPG(){
-    const mapArea=document.getElementById('mapArea');
-    const nombrePaso=document.getElementById('nombrePasoMapaInput')?.value||'Mapa del Paso';
+function exportMapJPG() {
 
-    html2canvas(mapArea).then(canvasMapa=>{
-        const paddingTop=60;
-        const nuevoCanvas=document.createElement('canvas');
-        const ctx=nuevoCanvas.getContext('2d');
+    const mapArea = document.getElementById('mapArea');
+    const nombrePaso = document.getElementById('nombrePasoMapaInput')?.value || 'Mapa del Paso';
 
-        nuevoCanvas.width=canvasMapa.width;
-        nuevoCanvas.height=canvasMapa.height+paddingTop;
+    html2canvas(mapArea).then(canvasMapa => {
 
-        ctx.fillStyle="#ffffff";
-        ctx.fillRect(0,0,nuevoCanvas.width,nuevoCanvas.height);
+        const paddingTop = 60; // espacio para el título
+        const nuevoCanvas = document.createElement('canvas');
+        const ctx = nuevoCanvas.getContext('2d');
 
-        ctx.fillStyle="#000000";
-        ctx.font="bold 28px Segoe UI";
-        ctx.textAlign="center";
-        ctx.fillText(nombrePaso,nuevoCanvas.width/2,40);
+        nuevoCanvas.width = canvasMapa.width;
+        nuevoCanvas.height = canvasMapa.height + paddingTop;
 
-        ctx.drawImage(canvasMapa,0,paddingTop);
+        // Fondo blanco
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, nuevoCanvas.width, nuevoCanvas.height);
 
-        const link=document.createElement('a');
-        link.download="mapa_paso.jpg";
-        link.href=nuevoCanvas.toDataURL("image/jpeg",0.95);
+        // Título
+        ctx.fillStyle = "#000000";
+        ctx.font = "bold 28px Segoe UI";
+        ctx.textAlign = "center";
+        ctx.fillText(nombrePaso, nuevoCanvas.width / 2, 40);
+
+        // Dibujar mapa debajo
+        ctx.drawImage(canvasMapa, 0, paddingTop);
+
+        // Descargar JPG
+        const link = document.createElement('a');
+        link.download = "mapa_paso.jpg";
+        link.href = nuevoCanvas.toDataURL("image/jpeg", 0.95);
         link.click();
     });
 }
-
-// ------------------------
-// INICIALIZACIÓN
-// ------------------------
-window.onload=()=>{
-    cargarDatosPaso();
-    cargarChargers();
-    if(paso.numBanzos && paso.numCargadoresPorBanzo){
-        crearMapaBanzos(paso.numBanzos,paso.numCargadoresPorBanzo);
-        cargarSlots();
-        actualizarNombrePasoMapa();
-    }
-};

@@ -168,19 +168,30 @@ function cargarDatosPaso() {
     document.getElementById('numCargadores').value = paso.numCargadores || '';
     document.getElementById('pesoMedio').value = paso.pesoMedio || '';
 
+    // Siempre restaurar la imagen
+    const img = document.getElementById('previewImagen');
     if(paso.imagen){
-        const img = document.getElementById('previewImagen');
         img.src = paso.imagen;
-        img.style.display='block';
+        img.style.display = 'block';
+    } else {
+        img.style.display = 'none';
     }
 
     // Bloquear o habilitar inputs según el estado guardado
     const bloqueado = localStorage.getItem('pasoBloqueado') !== 'false'; // si no existe, bloqueado por defecto
     document.querySelectorAll('#pasoForm input, #pasoForm select, #pasoForm textarea')
         .forEach(i => i.disabled = bloqueado);
-        actualizarNombrePasoMapa();
 
+    // Actualizar input del nombre del paso en el mapa
+    actualizarNombrePasoMapa();
+
+    // Resetear estilo de botones para que no queden pegados
+    document.querySelectorAll('#pasoForm button').forEach(btn => {
+        btn.style.transform = '';
+        btn.style.boxShadow = '';
+    });
 }
+
 
 
 // Imagen paso
@@ -195,7 +206,7 @@ document.getElementById('imagenPaso').addEventListener('change', function(){
             img.src = paso.imagen;
             img.style.display='block';
 
-            // IMPORTANTE: guardar al momento
+            // Guardar inmediatamente en localStorage
             localStorage.setItem('paso', JSON.stringify(paso));
         };
         reader.readAsDataURL(file);
@@ -612,4 +623,18 @@ function ajustarTextoEnSlot(slot) {
 
         if (fontSize <= 8) break; // mínimo
     }
+}
+function showSection(section) {
+    document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+    document.getElementById(section).style.display = 'block';
+
+    // Resetear botones
+    document.querySelectorAll('button').forEach(btn => {
+        btn.classList.remove('active'); // si usas clases
+        btn.style.transform = '';
+        btn.style.boxShadow = '';
+    });
+
+    if(section === 'mapa') renderMapChargerList();
+    if(section === 'paso') cargarDatosPaso();
 }

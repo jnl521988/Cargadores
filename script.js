@@ -678,47 +678,46 @@ function exportPDF(){
 // ------------------------
 // EXPORT JPG
 // ------------------------
-function exportarMapa(){
+function exportMapJPG() {
+    const mapArea = document.getElementById('mapArea');
+    const nombrePaso = document.getElementById('nombrePasoMapaInput')?.value || 'Mapa del Paso';
 
-    const mapa = document.getElementById('mapa');
+    // Crear contenedor temporal
+    const tempContainer = mapArea.cloneNode(true);
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px'; // Fuera de pantalla
+    tempContainer.style.width = mapArea.scrollWidth + 'px';
+    tempContainer.style.height = mapArea.scrollHeight + 'px';
+    tempContainer.style.overflow = 'visible'; // Asegura que todo sea visible
+    document.body.appendChild(tempContainer);
 
-    // Guardar estilos originales
-    const oldOverflow = mapa.style.overflow;
-    const oldWidth = mapa.style.width;
-    const oldHeight = mapa.style.height;
+    html2canvas(tempContainer).then(canvasMapa => {
+        const paddingTop = 60;
+        const nuevoCanvas = document.createElement('canvas');
+        const ctx = nuevoCanvas.getContext('2d');
 
-    // 🔥 Quitar scroll
-    mapa.style.overflow = 'visible';
+        nuevoCanvas.width = canvasMapa.width;
+        nuevoCanvas.height = canvasMapa.height + paddingTop;
 
-    // 🔥 Ajustar tamaño real
-    mapa.style.width = mapa.scrollWidth + 'px';
-    mapa.style.height = mapa.scrollHeight + 'px';
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, nuevoCanvas.width, nuevoCanvas.height);
 
-    html2canvas(mapa, {
-        scale: 2, // mejor calidad
-        useCORS: true,
-        backgroundColor: null
-    }).then(canvas => {
+        ctx.fillStyle = "#000000";
+        ctx.font = "bold 28px Segoe UI";
+        ctx.textAlign = "center";
+        ctx.fillText(nombrePaso, nuevoCanvas.width / 2, 40);
+
+        ctx.drawImage(canvasMapa, 0, paddingTop);
 
         const link = document.createElement('a');
-        link.download = 'mapa.jpg';
-        link.href = canvas.toDataURL('image/jpeg', 1);
+        link.download = "mapa_paso.jpg";
+        link.href = nuevoCanvas.toDataURL("image/jpeg", 0.95);
         link.click();
 
-        // 🔥 Restaurar estilos
-        mapa.style.overflow = oldOverflow;
-        mapa.style.width = oldWidth;
-        mapa.style.height = oldHeight;
+        // Limpiar contenedor temporal
+        document.body.removeChild(tempContainer);
     });
 }
-html2canvas(mapa, {
-    scale: window.devicePixelRatio,
-    scrollX: 0,
-    scrollY: -window.scrollY,
-    windowWidth: mapa.scrollWidth,
-    windowHeight: mapa.scrollHeight
-})
-
 
 
 

@@ -132,6 +132,10 @@ button:active {
 /* =========================
    MAPA
 ========================= */
+#mapa {
+    overflow: auto;
+}
+
 #mapArea {
     border: 2px solid #333;
     height: 400px;

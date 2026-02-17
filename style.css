@@ -1,35 +1,66 @@
+/* =========================
+   BASE
+========================= */
 body {
     font-family: 'Segoe UI', sans-serif;
-    margin:0; padding:0;
+    margin:0;
+    padding:0;
     background: #d7d3d3;
 }
 
+/* =========================
+   HEADER
+========================= */
 header {
     background: #2c3e50;
     color: white;
-    padding: 10px;
+    padding: 15px;
     text-align: center;
 }
 
-nav button {
-    margin: 5px;
+/* =========================
+   BOTONES
+========================= */
+button {
     padding: 10px 15px;
-    cursor: pointer;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
+    cursor: pointer;
     background: #3498db;
     color: white;
-    transition: 0.3s;
+    font-weight: bold;
+    transition: 0.2s;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
 }
 
-nav button:hover {
+button:hover {
     background: #2980b9;
+    transform: translateY(-2px);
 }
 
+button:active {
+    transform: translateY(1px);
+}
+
+/* Botón especial */
+#nuevoCargador {
+    background: #6b5b95;
+}
+
+#nuevoCargador:hover {
+    background: #5a4a7f;
+}
+
+/* =========================
+   SECCIONES
+========================= */
 .section {
     padding: 20px;
 }
 
+/* =========================
+   LISTAS
+========================= */
 .list li {
     background: white;
     margin: 5px 0;
@@ -38,19 +69,20 @@ nav button:hover {
     display:flex;
     justify-content:space-between;
     align-items:center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.list button {
-    margin-left:5px;
-}
-
-/* Modal */
+/* =========================
+   MODAL
+========================= */
 .modal {
     display: none;
     position: fixed;
     z-index: 2;
-    left:0; top:0;
-    width:100%; height:100%;
+    left:0; 
+    top:0;
+    width:100%; 
+    height:100%;
     background: rgba(0,0,0,0.5);
 }
 
@@ -61,16 +93,20 @@ nav button:hover {
     width: 400px;
     border-radius: 10px;
     position: relative;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
 }
 
 .close {
     position: absolute;
-    top:10px; right:15px;
+    top:10px; 
+    right:15px;
     font-size: 24px;
     cursor:pointer;
 }
 
+/* =========================
+   FORMULARIOS
+========================= */
 .form-group {
     margin-bottom: 15px;
 }
@@ -81,60 +117,38 @@ nav button:hover {
     font-weight:bold;
 }
 
-.form-group input, .form-group select, .form-group textarea {
+.form-group input, 
+.form-group select {
     width: 100%;
     padding: 8px;
     border-radius: 5px;
     border: 1px solid #ccc;
-    background-color: white;   /* Esto hace que el fondo sea blanco */
 }
-
 
 .form-actions {
     text-align: right;
 }
 
-.form-actions button {
-    padding: 8px 15px;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
-    background: #27ae60;
-    color:white;
-    transition:0.3s;
-}
-
-.form-actions button:hover {
-    background: #219150;
-}
-
+/* =========================
+   MAPA
+========================= */
 #mapArea {
     border: 2px solid #333;
     height: 400px;
-    position: relative;
-}
-
-#mapChargerList {
-    margin-top: 10px;
-}
-#mapArea {
-    border: 2px solid #333;
-    height: 400px;
-    position: relative;
     display: flex;
     justify-content: space-between;
     padding:10px;
     background: #e5e5e5;
     border-radius: 10px;
+    gap: 10px;
 }
 
 .banzos-container {
-    width: 48%;
-    border: 1px dashed #f1ecec;
+    width: 50%;
+    border: 2px dashed #ccc;
     min-height: 350px;
     padding:10px;
     border-radius:5px;
-    position: relative;
     background: #fff;
 }
 
@@ -142,25 +156,20 @@ nav button:hover {
     text-align:center;
     margin-top:0;
 }
+
+/* GRID DE BANCOS */
 .banzo-slots {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
     gap: 6px;
-    width: 100%;
 }
 
-#mapChargerList li {
-    cursor: grab;
-}
-
-/* ------------------------
-   ESTILO DEL MAPA - SLOT
------------------------- */
+/* SLOT */
 .slot {
     width: 100%;
     aspect-ratio: 4 / 3;
     background: #eee;
-    border: 2px solid #3498db; /* borde color */
+    border: 2px solid #3498db;
     border-radius: 5px;
 
     display: flex;
@@ -171,92 +180,41 @@ nav button:hover {
     font-weight: bold;
     text-align: center;
 
-    overflow: hidden;
-    white-space: normal;
+    padding: 4px;
     word-break: break-word;
-    padding: 2px;
-
     color: black;
 }
 
-
-/* Si quieres que el fondo cambie según el color de túnica pero el texto siempre negro */
+/* SLOT OCUPADO */
 .slot[data-asignado] {
-    color: black !important;
+    background: #c8e6c9;
+    border-color: #27ae60;
 }
 
-/* Botón Nuevo Cargador */
-button#nuevoCargador, /* si usas un id específico */
-button { 
-    padding: 10px 20px;
-    background: #6b5b95;          /* color de fondo */
-    color: white;                 /* texto blanco */
-    font-size: 16px;
-    font-weight: bold;
-    border: none;
-    border-radius: 8px;           /* esquinas redondeadas */
-    cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-    transition: all 0.2s ease-in-out;
-}
-
-/* Hover efecto */
-button#nuevoCargador:hover,
-button:hover {
-    background: #5a4a7f;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 8px rgba(0,0,0,0.3);
-}
-
-/* Presionar */
-button#nuevoCargador:active,
-button:active {
-    transform: translateY(1px);
-    box-shadow: 0 3px 5px rgba(0,0,0,0.2);
-}
-
-
-/* Botones de abrir modal */
-#openModalBtn {
-    background-color: #2196F3; /* Azul */
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-#openModalBtn:hover {
-    background-color: #1976D2;
-}
-/* Estilo del input de nombre del paso */
+/* =========================
+   INPUT MAPA
+========================= */
 #nombrePasoMapaInput {
-    padding: 10px 12px;
+    padding: 10px;
     font-size: 16px;
     border-radius: 6px;
-    border: 2px solid #3498db; /* borde azul */
-    background-color: #fff;     /* fondo blanco */
-    color: #2c3e50;             /* texto oscuro */
-    outline: none;
-    transition: border 0.2s;
+    border: 2px solid #3498db;
 }
 
-/* Cambiar color del borde al enfocarse */
 #nombrePasoMapaInput:focus {
-    border-color: #2980b9; /* azul más oscuro al focus */
+    border-color: #2980b9;
 }
 
-/* Label */
-label[for="nombrePasoMapaInput"] {
-    font-weight: bold;
-    font-size: 16px;
-    color: #2c3e50;
-    margin-right: 8px;
+/* =========================
+   DRAG
+========================= */
+#mapChargerList li {
+    cursor: grab;
 }
-/* ===== AJUSTE MAPA RESPONSIVE (MÓVIL) ===== */
 
-/* Móvil */
+/* =========================
+   RESPONSIVE
+========================= */
 @media (max-width: 768px) {
 
     #mapArea {
@@ -266,61 +224,9 @@ label[for="nombrePasoMapaInput"] {
 
     .banzos-container {
         width: 100%;
-        margin-bottom: 15px;
     }
 
     .banzo-slots {
         grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
     }
 }
-
-/* Los slots dentro de cada banzo se apilan verticalmente y se ajustan */
-.banzo {
-    display: flex;
-    flex-direction: column;  /* slots en columna */
-    align-items: center;     /* centrar horizontal */
-    justify-content: flex-start;
-    gap: 5px;                /* separación entre slots */
-    height: 100%;            /* ocupa todo el banzo */
-}
-
-/* Slots individuales */
-.slot {
-    width: 90%;              /* ancho relativo al banzo */
-    aspect-ratio: 4 / 3;     /* mantiene proporción */
-    background: #eee;
-    border: 2px solid #3498db;
-    border-radius: 5px;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-
-    font-size: 12px;
-    font-weight: bold;
-
-    white-space: normal;
-    word-break: break-word;
-    padding: 2px;
-    overflow: hidden;
-
-    color: black;
-}
-
-/* Ajuste en móvil */
-@media (max-width: 768px) {
-    #mapArea {
-        flex-direction: row;       /* mantener fila */
-        justify-content: flex-start; /* los contenedores se alinean al inicio */
-        overflow-x: auto;          /* habilita scroll horizontal */
-        height: auto;
-        padding-bottom: 10px;
-    }
-
-    .banzos-container {
-        min-width: 300px;          /* ancho mínimo para cada contenedor */
-        margin-right: 10px;        /* separación entre delanteros y traseros */
-    }
-}
-

@@ -22,9 +22,7 @@
 
     <!-- SECCIÓN CARGADORES -->
     <section id="cargadores" class="section">
-<button id="nuevoCargador" onclick="openModal()">NUEVO CARGADOR</button>
-
-
+        <button id="nuevoCargador" onclick="openModal()">NUEVO CARGADOR</button>
 
         <!-- Modal de cargadores -->
         <div id="modal" class="modal">
@@ -46,7 +44,7 @@
                     </div>
                     <div class="form-group">
                         <label>Estatura de Hombro (m)</label>
-                        <input type="number" id="estatura" min="1" max="2.20 " required>
+                        <input type="number" id="estatura" min="1" max="2.20" step="0.01" required>
                     </div>
                     <div class="form-group">
                         <label>Color Túnica</label>
@@ -77,73 +75,65 @@
     <!-- SECCIÓN MAPA -->
     <section id="mapa" class="section" style="display:none;">
         <h2>Mapa del Paso</h2>
-        <div style="display:flex; align-items:center;">
-        <label for="nombrePasoMapaInput" style="margin-right:5px;">Nombre del Paso:</label>
-        <input type="text" id="nombrePasoMapaInput" placeholder="Escribe el nombre..." style="padding:5px; font-size:16px; border-radius:5px; border:1px solid #ccc;">
-    </div>
-</div>
-        <div id="mapArea">
-            <!-- Rectángulo del paso con banzos -->
-            <div id="delanteros" class="banzos-container">
-                <h3>DELANTEROS</h3>
-                <div class="banzo-slots"></div>
-            </div>
-            <div id="traseros" class="banzos-container">
-                <h3>TRASEROS</h3>
-            </div>
+        <div style="display:flex; align-items:center; margin-bottom:10px;">
+            <label for="nombrePasoMapaInput" style="margin-right:5px;">Nombre del Paso:</label>
+            <input type="text" id="nombrePasoMapaInput" placeholder="Escribe el nombre..." style="padding:5px; font-size:16px; border-radius:5px; border:1px solid #ccc;">
         </div>
+
+        <div id="mapArea"></div>
+
         <p>Arrastra los Cargadores desde la Lista para colocarlos en los Banzos</p>
         <ul id="mapChargerList" class="list"></ul>
     </section>
 
     <!-- SECCIÓN DATOS DEL PASO -->
     <section id="paso" class="section" style="display:none;">
-    <h2>Datos del Paso</h2>
-    <form id="pasoForm">
-        <div class="form-group">
-            <label>Nombre de la Imagen Procesional</label>
-            <input type="text" id="nombrePaso" required>
-        </div>
-        <div class="form-group">
-            <label>Fecha de Ejecución</label>
-            <input type="text" id="fechaPaso" placeholder="Ej: 2026" required>
-        </div>
-        <div class="form-group">
-            <label>Medidas (Largo x Ancho x Alto en m)</label>
-            <input type="text" id="medidas" placeholder="Ej: 3.50x2x2.50" required>
-        </div>
-        <div class="form-group">
-            <label>Peso Total del Paso (Kg)</label>
-            <input type="number" id="pesoTotal" min="1" required>
-        </div>
-        <div class="form-group">
-            <label>Número de Banzos por Paso</label>
-            <input type="number" id="numBanzos" min="1" required>
-        </div>
-        <div class="form-group">
-            <label>Número de Cargadores por Banzo</label>
-            <input type="number" id="numCargadoresPorBanzo" min="1" required>
-        </div>
-        <div class="form-group">
-            <label>Número Total de Cargadores</label>
-            <input type="number" id="numCargadores" readonly>
-        </div>
-        <div class="form-group">
-            <label>Peso Medio por Cargador (Kg)</label>
-            <input type="number" id="pesoMedio" readonly>
-        </div>
-        <div class="form-group">
-            <label>Imagen del Paso</label>
-            <input type="file" id="imagenPaso" accept="image/*">
-            <img id="previewImagen" style="max-width:300px; display:none; margin-top:10px;">
-        </div>
-        <div class="form-actions">
-            <button type="button" onclick="guardarPaso()">Guardar Datos</button>
-            <button type="button" onclick="habilitarEdicion()">Editar Datos</button>
-        </div>
-    </form>
-</section>
+        <h2>Datos del Paso</h2>
+        <form id="pasoForm">
+            <div class="form-group">
+                <label>Nombre de la Imagen Procesional</label>
+                <input type="text" id="nombrePaso" required>
+            </div>
+            <div class="form-group">
+                <label>Fecha de Ejecución</label>
+                <input type="text" id="fechaPaso" placeholder="Ej: 2026" required>
+            </div>
+            <div class="form-group">
+                <label>Medidas (Largo x Ancho x Alto en m)</label>
+                <input type="text" id="medidas" placeholder="Ej: 3.50x2x2.50" required>
+            </div>
+            <div class="form-group">
+                <label>Peso Total del Paso (Kg)</label>
+                <input type="number" id="pesoTotal" min="1" required>
+            </div>
+            <div class="form-group">
+                <label>Número de Banzos por Paso</label>
+                <input type="number" id="numBanzos" min="1" value="1" required>
+            </div>
+            <div class="form-group">
+                <label>Número de Cargadores por Banzo</label>
+                <input type="number" id="numCargadoresPorBanzo" min="1" value="1" required>
+            </div>
+            <div class="form-group">
+                <label>Número Total de Cargadores</label>
+                <input type="number" id="numCargadores" readonly>
+            </div>
+            <div class="form-group">
+                <label>Peso Medio por Cargador (Kg)</label>
+                <input type="number" id="pesoMedio" readonly>
+            </div>
+            <div class="form-group">
+                <label>Imagen del Paso</label>
+               <input type="file" id="imagenPaso" accept="image/*">
+<img id="previewImagen" style="display:none; max-width:200px;">
 
+            </div>
+            <div class="form-actions">
+                <button type="button" onclick="editarPaso()">Editar</button>
+                <button type="button" onclick="guardarPaso()">Guardar</button>
+            </div>
+        </form>
+    </section>
 
 <script src="script.js"></script>
 </body>

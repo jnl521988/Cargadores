@@ -117,15 +117,18 @@ function showSection(section) {
 function openModal(index = null){
     document.getElementById('modal').style.display = 'block';
     if(index !== null){
-        editIndex = index;
-        const c = chargers[index];
-        document.getElementById('modalTitle').innerText = "Editar Cargador";
-        document.getElementById('nombre').value = c.nombre;
-        document.getElementById('edad').value = c.edad;
-        document.getElementById('telefono').value = c.telefono;
-        document.getElementById('estatura').value = c.estatura;
-        document.getElementById('colorTunica').value = c.colorTunica;
-        document.getElementById('ubicacion').value = c.ubicacion;
+    editIndex = index;
+    const c = chargers[index];
+    const anioActual = new Date().getFullYear();
+    const edadActual = c.edadInicial + (anioActual - c.anioRegistro);
+
+    document.getElementById('modalTitle').innerText = "Editar Cargador";
+    document.getElementById('nombre').value = c.nombre;
+    document.getElementById('edad').value = edadActual;
+    document.getElementById('telefono').value = c.telefono;
+    document.getElementById('estatura').value = c.estatura;
+    document.getElementById('colorTunica').value = c.colorTunica;
+    document.getElementById('ubicacion').value = c.ubicacion;
     } else {
         editIndex = null;
         document.getElementById('modalTitle').innerText = "Agregar Cargador";
@@ -136,20 +139,25 @@ function openModal(index = null){
 function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
 function saveCharger() {
+    const anioActual = new Date().getFullYear();
+
     const c = {
         nombre: document.getElementById('nombre').value,
-        edad: document.getElementById('edad').value,
+        edadInicial: parseInt(document.getElementById('edad').value), // edad al registrar
+        anioRegistro: anioActual, // año en que se registró
         telefono: document.getElementById('telefono').value,
         estatura: document.getElementById('estatura').value,
         colorTunica: document.getElementById('colorTunica').value,
         ubicacion: document.getElementById('ubicacion').value
     };
+
     if(editIndex !== null) chargers[editIndex] = c;
     else chargers.push(c);
 
     closeModal();
     updateChargerList();
 }
+
 
 function deleteCharger(index){
     chargers.splice(index, 1);
@@ -159,11 +167,21 @@ function deleteCharger(index){
 function updateChargerList(){
     const list = document.getElementById('chargerList');
     list.innerHTML = '';
+    const anioActual = new Date().getFullYear();
+
     chargers.forEach((c,i) => {
+        const edadActual = c.edadInicial + (anioActual - c.anioRegistro); // recalcula la edad
         const li = document.createElement('li');
-        li.textContent = `${c.nombre} - ${c.edad} años - ${c.telefono} - ${c.estatura}m - ${c.colorTunica} - ${c.ubicacion}`;
-        const editBtn = document.createElement('button'); editBtn.textContent='Editar'; editBtn.onclick = () => openModal(i);
-        const delBtn = document.createElement('button'); delBtn.textContent='Borrar'; delBtn.onclick = () => deleteCharger(i);
+        li.textContent = `${c.nombre} - ${edadActual} años - ${c.telefono} - ${c.estatura}m - ${c.colorTunica} - ${c.ubicacion}`;
+
+        const editBtn = document.createElement('button'); 
+        editBtn.textContent='Editar'; 
+        editBtn.onclick = () => openModal(i);
+
+        const delBtn = document.createElement('button'); 
+        delBtn.textContent='Borrar'; 
+        delBtn.onclick = () => deleteCharger(i);
+
         li.appendChild(editBtn);
         li.appendChild(delBtn);
         list.appendChild(li);
@@ -172,6 +190,7 @@ function updateChargerList(){
     localStorage.setItem('chargers', JSON.stringify(chargers));
     renderMapChargerList();
 }
+
 
 function cargarChargers(){
     const saved = localStorage.getItem('chargers');
@@ -532,42 +551,77 @@ function renderMapChargerList(){
 function activarDragMovil(){
     document.querySelectorAll('#mapChargerList li').forEach(li=>{
         li.addEventListener('touchstart', e=>{ li.classList.add('dragging'); });
-        li.addEventListener('touchmove', e=>{
-            const touch = e.touches[0];
-            li.style.position='absolute';
-            li.style.zIndex=1000;
-            li.style.left=(touch.clientX-40)+'px';
-            li.style.top=(touch.clientY-20)+'px';
-        });
+        let lastHighlightedSlot = null;
+
+li.addEventListener('touchmove', e=>{
+    const touch = e.touches[0];
+    li.style.position='absolute';
+    li.style.zIndex=1000;
+    li.style.left=(touch.clientX-40)+'px';
+    li.style.top=(touch.clientY-20)+'px';
+
+    // Encontrar slot más cercano
+    let closestSlot = null;
+    let minDist = Infinity;
+    document.querySelectorAll('.slot').forEach(slot=>{
+        const rect = slot.getBoundingClientRect();
+        const dx = touch.clientX - (rect.left + rect.width/2);
+        const dy = touch.clientY - (rect.top + rect.height/2);
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if(dist < minDist && dist < 100){ // tolerancia 100px
+            minDist = dist;
+            closestSlot = slot;
+        }
+        slot.classList.remove('highlight'); // quitar resaltado previo
+    });
+
+    if(closestSlot){
+        closestSlot.classList.add('highlight');
+        lastHighlightedSlot = closestSlot;
+    } else if(lastHighlightedSlot){
+        lastHighlightedSlot.classList.remove('highlight');
+        lastHighlightedSlot = null;
+    }
+});
+
         li.addEventListener('touchend', e=>{
-            li.classList.remove('dragging');
-            const touch = e.changedTouches[0];
-            const element = document.elementFromPoint(touch.clientX, touch.clientY);
-            if(element && element.classList.contains('slot') && draggedIndex!==null){
-                const c = chargers[draggedIndex];
-                const tipoSlot = element.dataset.tipo;
-                const mapUbicacion = { 'delantera':'delantero', 'trasera':'trasero' };
-                if(mapUbicacion[c.ubicacion.toLowerCase()]!==tipoSlot){
-                    alert(`Este cargador es ${c.ubicacion} y no puede colocarse aquí.`);
-                    return;
+    li.classList.remove('dragging');
+    const touch = e.changedTouches[0];
+    
+    // Soltar en el slot resaltado
+    const slot = lastHighlightedSlot;
+    if(slot && draggedIndex !== null){
+        const c = chargers[draggedIndex];
+        const tipoSlot = slot.dataset.tipo;
+        const mapUbicacion = { 'delantera':'delantero', 'trasera':'trasero' };
+        if(mapUbicacion[c.ubicacion.toLowerCase()]!==tipoSlot){
+            alert(`Este cargador es ${c.ubicacion} y no puede colocarse aquí.`);
+        } else {
+            document.querySelectorAll('.slot').forEach(s=>{
+                if(s.dataset.asignado===c.nombre){
+                    s.textContent='';
+                    s.style.background='#eee';
+                    s.dataset.asignado='';
                 }
-                document.querySelectorAll('.slot').forEach(s=>{
-                    if(s.dataset.asignado===c.nombre){
-                        s.textContent='';
-                        s.style.background='#eee';
-                        s.dataset.asignado='';
-                    }
-                });
-                element.textContent=c.nombre;
-                ajustarTextoEnSlot(element);
-                element.style.background=c.colorTunica;
-                element.style.color='black';
-                element.dataset.asignado=c.nombre;
-                guardarSlots();
-                draggedIndex=null;
-            }
-            li.style.position=''; li.style.left=''; li.style.top=''; li.style.zIndex='';
-        });
+            });
+            slot.textContent=c.nombre;
+            ajustarTextoEnSlot(slot);
+            slot.style.background=c.colorTunica;
+            slot.style.color='black';
+            slot.dataset.asignado=c.nombre;
+            guardarSlots();
+        }
+    }
+
+    if(lastHighlightedSlot){
+        lastHighlightedSlot.classList.remove('highlight');
+        lastHighlightedSlot = null;
+    }
+
+    li.style.position=''; li.style.left=''; li.style.top=''; li.style.zIndex='';
+    draggedIndex = null;
+});
+
     });
 }
 

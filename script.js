@@ -548,82 +548,102 @@ function renderMapChargerList(){
 // ------------------------
 // DRAG PARA MÓVIL
 // ------------------------
+let lastHighlightedSlot = null;
+
 function activarDragMovil(){
+
     document.querySelectorAll('#mapChargerList li').forEach(li=>{
-        li.addEventListener('touchstart', e=>{ li.classList.add('dragging'); });
-        let lastHighlightedSlot = null;
 
-li.addEventListener('touchmove', e=>{
-    const touch = e.touches[0];
-    li.style.position='absolute';
-    li.style.zIndex=1000;
-    li.style.left=(touch.clientX-40)+'px';
-    li.style.top=(touch.clientY-20)+'px';
+        li.addEventListener('touchstart', e=>{
 
-    // Encontrar slot más cercano
-    let closestSlot = null;
-    let minDist = Infinity;
-    document.querySelectorAll('.slot').forEach(slot=>{
-        const rect = slot.getBoundingClientRect();
-        const dx = touch.clientX - (rect.left + rect.width/2);
-        const dy = touch.clientY - (rect.top + rect.height/2);
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if(dist < minDist && dist < 100){ // tolerancia 100px
-            minDist = dist;
-            closestSlot = slot;
-        }
-        slot.classList.remove('highlight'); // quitar resaltado previo
-    });
+            li.classList.add('dragging');
 
-    if(closestSlot){
-        closestSlot.classList.add('highlight');
-        lastHighlightedSlot = closestSlot;
-    } else if(lastHighlightedSlot){
-        lastHighlightedSlot.classList.remove('highlight');
-        lastHighlightedSlot = null;
-    }
-});
+            // 🔥 GUARDAR INDEX DEL CARGADOR
+            const nombre = li.textContent.replace(/^\d+\.\s/, '');
+            draggedIndex = chargers.findIndex(c => c.nombre === nombre);
+
+        });
+
+        li.addEventListener('touchmove', e=>{
+
+            const touch = e.touches[0];
+
+            li.style.position='absolute';
+            li.style.zIndex=1000;
+            li.style.left=(touch.clientX-40)+'px';
+            li.style.top=(touch.clientY-20)+'px';
+
+            // 🔥 IMPORTANTE
+            li.style.pointerEvents = 'none';
+
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+
+            // quitar resaltado
+            document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
+
+            if(element && element.classList.contains('slot')){
+                element.classList.add('highlight');
+                lastHighlightedSlot = element;
+            } else {
+                lastHighlightedSlot = null;
+            }
+
+        });
 
         li.addEventListener('touchend', e=>{
-    li.classList.remove('dragging');
-    const touch = e.changedTouches[0];
-    
-    // Soltar en el slot resaltado
-    const slot = lastHighlightedSlot;
-    if(slot && draggedIndex !== null){
-        const c = chargers[draggedIndex];
-        const tipoSlot = slot.dataset.tipo;
-        const mapUbicacion = { 'delantera':'delantero', 'trasera':'trasero' };
-        if(mapUbicacion[c.ubicacion.toLowerCase()]!==tipoSlot){
-            alert(`Este cargador es ${c.ubicacion} y no puede colocarse aquí.`);
-        } else {
-            document.querySelectorAll('.slot').forEach(s=>{
-                if(s.dataset.asignado===c.nombre){
-                    s.textContent='';
-                    s.style.background='#eee';
-                    s.dataset.asignado='';
+
+            li.classList.remove('dragging');
+
+            // volver a activar eventos
+            li.style.pointerEvents = 'auto';
+
+            if(lastHighlightedSlot && draggedIndex !== null){
+
+                const slot = lastHighlightedSlot;
+                const c = chargers[draggedIndex];
+
+                const tipoSlot = slot.dataset.tipo;
+                const mapUbicacion = { 'delantera':'delantero', 'trasera':'trasero' };
+
+                if(mapUbicacion[c.ubicacion.toLowerCase()]!==tipoSlot){
+                    alert(`Este cargador es ${c.ubicacion} y no puede colocarse aquí.`);
+                } else {
+
+                    document.querySelectorAll('.slot').forEach(s=>{
+                        if(s.dataset.asignado===c.nombre){
+                            s.textContent='';
+                            s.style.background='#eee';
+                            s.dataset.asignado='';
+                        }
+                    });
+
+                    slot.textContent=c.nombre;
+                    ajustarTextoEnSlot(slot);
+                    slot.style.background=c.colorTunica;
+                    slot.style.color='black';
+                    slot.dataset.asignado=c.nombre;
+
+                    guardarSlots();
                 }
-            });
-            slot.textContent=c.nombre;
-            ajustarTextoEnSlot(slot);
-            slot.style.background=c.colorTunica;
-            slot.style.color='black';
-            slot.dataset.asignado=c.nombre;
-            guardarSlots();
-        }
-    }
+            }
 
-    if(lastHighlightedSlot){
-        lastHighlightedSlot.classList.remove('highlight');
-        lastHighlightedSlot = null;
-    }
+            // quitar resaltado
+            document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
+            lastHighlightedSlot = null;
 
-    li.style.position=''; li.style.left=''; li.style.top=''; li.style.zIndex='';
-    draggedIndex = null;
-});
+            li.style.position='';
+            li.style.left='';
+            li.style.top='';
+            li.style.zIndex='';
+
+            draggedIndex = null;
+
+        });
 
     });
+
 }
+
 
 function ajustarTextoEnSlot(slot){
     let fontSize=14;

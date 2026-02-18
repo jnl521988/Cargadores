@@ -1,11 +1,6 @@
 // ------------------------
 // VARIABLES GLOBALES
-// ------------------------
-function esMovil(){
-    return ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-}
-
-
+// ------------------------z
 let chargers = [];
 let editIndex = null;
 let draggedIndex = null;
@@ -194,9 +189,6 @@ function updateChargerList(){
 
     localStorage.setItem('chargers', JSON.stringify(chargers));
     renderMapChargerList();
-    if(esMovil()){
-    activarDragMovil(); // solo activa drag móvil si estamos en móvil
-}
 }
 
 
@@ -460,10 +452,7 @@ function crearMapaBanzos(numBanzos, numPorBanzo){
     crearBanzos(traserosDiv, restantes, 'trasero');
 
     cargarSlots();
-    if(esMovil()){
     activarDragMovil();
-}
-
 }
 
 // ------------------------
@@ -559,42 +548,37 @@ function renderMapChargerList(){
 // ------------------------
 // DRAG PARA MÓVIL
 // ------------------------
-let dragClone = null;
 let lastHighlightedSlot = null;
 
 function activarDragMovil(){
+
     document.querySelectorAll('#mapChargerList li').forEach(li=>{
-        // 🔥 Si ya tiene drag activado, no lo activamos de nuevo
-        if(li.dataset.dragActivo === "true") return;
-        li.dataset.dragActivo = "true";
 
         li.addEventListener('touchstart', e=>{
-            const touch = e.touches[0];
+
+            li.classList.add('dragging');
+
+            // 🔥 GUARDAR INDEX DEL CARGADOR
             const nombre = li.textContent.replace(/^\d+\.\s/, '');
             draggedIndex = chargers.findIndex(c => c.nombre === nombre);
 
-            dragClone = li.cloneNode(true);
-            dragClone.style.position = 'fixed';
-            dragClone.style.left = touch.clientX + 'px';
-            dragClone.style.top = touch.clientY + 'px';
-            dragClone.style.zIndex = 9999;
-            dragClone.style.background = '#fff';
-            dragClone.style.padding = '5px 10px';
-            dragClone.style.border = '1px solid #000';
-            dragClone.style.borderRadius = '5px';
-            dragClone.style.pointerEvents = 'none';
-            dragClone.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
-            document.body.appendChild(dragClone);
-        }, { passive: false });
+        });
 
         li.addEventListener('touchmove', e=>{
-            if(!dragClone) return;
+
             const touch = e.touches[0];
-            dragClone.style.left = (touch.clientX - 40) + 'px';
-            dragClone.style.top = (touch.clientY - 20) + 'px';
+
+            li.style.position='absolute';
+            li.style.zIndex=1000;
+            li.style.left=(touch.clientX-40)+'px';
+            li.style.top=(touch.clientY-20)+'px';
+
+            // 🔥 IMPORTANTE
+            li.style.pointerEvents = 'none';
 
             const element = document.elementFromPoint(touch.clientX, touch.clientY);
 
+            // quitar resaltado
             document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
 
             if(element && element.classList.contains('slot')){
@@ -603,23 +587,28 @@ function activarDragMovil(){
             } else {
                 lastHighlightedSlot = null;
             }
-        }, { passive: false });
+
+        });
 
         li.addEventListener('touchend', e=>{
-            if(dragClone){
-                dragClone.remove();
-                dragClone = null;
-            }
+
+            li.classList.remove('dragging');
+
+            // volver a activar eventos
+            li.style.pointerEvents = 'auto';
 
             if(lastHighlightedSlot && draggedIndex !== null){
+
                 const slot = lastHighlightedSlot;
                 const c = chargers[draggedIndex];
+
                 const tipoSlot = slot.dataset.tipo;
                 const mapUbicacion = { 'delantera':'delantero', 'trasera':'trasero' };
 
-                if(mapUbicacion[c.ubicacion.toLowerCase()] !== tipoSlot){
+                if(mapUbicacion[c.ubicacion.toLowerCase()]!==tipoSlot){
                     alert(`Este cargador es ${c.ubicacion} y no puede colocarse aquí.`);
                 } else {
+
                     document.querySelectorAll('.slot').forEach(s=>{
                         if(s.dataset.asignado===c.nombre){
                             s.textContent='';
@@ -627,23 +616,33 @@ function activarDragMovil(){
                             s.dataset.asignado='';
                         }
                     });
+
                     slot.textContent=c.nombre;
                     ajustarTextoEnSlot(slot);
                     slot.style.background=c.colorTunica;
                     slot.style.color='black';
                     slot.dataset.asignado=c.nombre;
+
                     guardarSlots();
                 }
             }
 
+            // quitar resaltado
             document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
             lastHighlightedSlot = null;
+
+            li.style.position='';
+            li.style.left='';
+            li.style.top='';
+            li.style.zIndex='';
+
             draggedIndex = null;
+
         });
+
     });
+
 }
-
-
 
 
 function ajustarTextoEnSlot(slot){

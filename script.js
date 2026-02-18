@@ -3,11 +3,10 @@
 // ------------------------
 let chargers = [];
 let editIndex = null;
-let imagenBase64 = "";
 let draggedIndex = null;
-let draggedClone = null;
+let imagenBase64 = "";
 let lastHighlightedSlot = null;
-
+let draggedClone = null;
 
 
 
@@ -535,14 +534,7 @@ function renderMapChargerList(){
                 draggedIndex = chargers.indexOf(c);
                 e.dataTransfer.setData('text', draggedIndex);
             };
-           const index = chargers.indexOf(c);
-
-li.dataset.index = index;
-
-li.addEventListener('touchstart', ()=>{
-    draggedIndex = index;
-});
-
+            li.addEventListener('touchstart', ()=>{ draggedIndex = chargers.indexOf(c); });
             ul.appendChild(li);
         });
         div.appendChild(ul);
@@ -557,52 +549,52 @@ li.addEventListener('touchstart', ()=>{
 }
 
 // ------------------------
-// DRAG PARA MÓVIL (VERSIÓN PRO)
+// DRAG PARA MÓVIL
 // ------------------------
-
-
 function activarDragMovil(){
 
     document.querySelectorAll('#mapChargerList li').forEach(li=>{
 
+        // 🟢 TOUCH START
         li.addEventListener('touchstart', e=>{
 
-            draggedIndex = li.dataset.index;
+            // obtener index real
+            const nombre = li.textContent.replace(/^\d+\.\s/, '');
+            draggedIndex = chargers.findIndex(c => c.nombre === nombre);
 
-            // 🔥 Crear clon visual
+            // 🔥 crear clon visual (NO mover el original)
             draggedClone = li.cloneNode(true);
+
             draggedClone.style.position = 'fixed';
-            draggedClone.style.zIndex = 1000;
+            draggedClone.style.zIndex = 9999;
             draggedClone.style.pointerEvents = 'none';
-            draggedClone.style.opacity = '0.85';
+            draggedClone.style.opacity = '0.9';
             draggedClone.style.background = '#fff';
-            draggedClone.style.padding = '5px';
+            draggedClone.style.padding = '5px 10px';
             draggedClone.style.border = '1px solid #ccc';
-            draggedClone.style.borderRadius = '5px';
+            draggedClone.style.borderRadius = '6px';
             draggedClone.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
             draggedClone.style.fontWeight = 'bold';
 
             document.body.appendChild(draggedClone);
-        });
+
+        }, { passive: false });
 
 
+        // 🟢 TOUCH MOVE
         li.addEventListener('touchmove', e=>{
 
             const touch = e.touches[0];
-            e.preventDefault();
 
+            e.preventDefault(); // 🔥 clave para móvil
 
-            // 🔥 Mover el clon
+            // mover clon
             if(draggedClone){
                 draggedClone.style.left = (touch.clientX - 40) + 'px';
                 draggedClone.style.top = (touch.clientY - 20) + 'px';
             }
 
-            if(draggedClone){
-    draggedClone.style.pointerEvents = 'none';
-}
-
-            // 🔥 Detectar slot debajo del dedo
+            // detectar slot
             const element = document.elementFromPoint(touch.clientX, touch.clientY);
 
             // limpiar highlights
@@ -614,10 +606,12 @@ function activarDragMovil(){
             } else {
                 lastHighlightedSlot = null;
             }
-        });
+
+        }, { passive: false });
 
 
-        li.addEventListener('touchend', e=>{
+        // 🟢 TOUCH END
+        li.addEventListener('touchend', ()=>{
 
             if(lastHighlightedSlot && draggedIndex !== null){
 
@@ -631,7 +625,7 @@ function activarDragMovil(){
                     alert(`Este cargador es ${c.ubicacion} y no puede colocarse aquí.`);
                 } else {
 
-                    // quitar si ya estaba asignado
+                    // quitar si ya estaba colocado
                     document.querySelectorAll('.slot').forEach(s=>{
                         if(s.dataset.asignado === c.nombre){
                             s.textContent = '';
@@ -640,7 +634,7 @@ function activarDragMovil(){
                         }
                     });
 
-                    // asignar al nuevo slot
+                    // asignar
                     slot.textContent = c.nombre;
                     ajustarTextoEnSlot(slot);
                     slot.style.background = c.colorTunica;
@@ -651,21 +645,23 @@ function activarDragMovil(){
                 }
             }
 
-            // 🔥 limpiar resaltado
+            // limpiar resaltado
             document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
             lastHighlightedSlot = null;
 
-            // 🔥 eliminar clon
+            // eliminar clon
             if(draggedClone){
                 draggedClone.remove();
                 draggedClone = null;
             }
 
             draggedIndex = null;
+
         });
 
     });
 }
+
 
 
 function ajustarTextoEnSlot(slot){

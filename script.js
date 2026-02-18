@@ -194,6 +194,9 @@ function updateChargerList(){
 
     localStorage.setItem('chargers', JSON.stringify(chargers));
     renderMapChargerList();
+    if(esMovil()){
+    activarDragMovil(); // solo activa drag móvil si estamos en móvil
+}
 }
 
 
@@ -560,18 +563,16 @@ let dragClone = null;
 let lastHighlightedSlot = null;
 
 function activarDragMovil(){
-
     document.querySelectorAll('#mapChargerList li').forEach(li=>{
+        // 🔥 Si ya tiene drag activado, no lo activamos de nuevo
+        if(li.dataset.dragActivo === "true") return;
+        li.dataset.dragActivo = "true";
 
         li.addEventListener('touchstart', e=>{
-
             const touch = e.touches[0];
-
-            // 🔥 obtener nombre sin número
             const nombre = li.textContent.replace(/^\d+\.\s/, '');
             draggedIndex = chargers.findIndex(c => c.nombre === nombre);
 
-            // 🔥 crear clon visual
             dragClone = li.cloneNode(true);
             dragClone.style.position = 'fixed';
             dragClone.style.left = touch.clientX + 'px';
@@ -583,22 +584,15 @@ function activarDragMovil(){
             dragClone.style.borderRadius = '5px';
             dragClone.style.pointerEvents = 'none';
             dragClone.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
-
             document.body.appendChild(dragClone);
-
         }, { passive: false });
 
         li.addEventListener('touchmove', e=>{
-
             if(!dragClone) return;
-
             const touch = e.touches[0];
-
-            // mover clon
             dragClone.style.left = (touch.clientX - 40) + 'px';
             dragClone.style.top = (touch.clientY - 20) + 'px';
 
-            // detectar slot debajo
             const element = document.elementFromPoint(touch.clientX, touch.clientY);
 
             document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
@@ -609,29 +603,23 @@ function activarDragMovil(){
             } else {
                 lastHighlightedSlot = null;
             }
-
         }, { passive: false });
 
         li.addEventListener('touchend', e=>{
-
             if(dragClone){
                 dragClone.remove();
                 dragClone = null;
             }
 
             if(lastHighlightedSlot && draggedIndex !== null){
-
                 const slot = lastHighlightedSlot;
                 const c = chargers[draggedIndex];
-
                 const tipoSlot = slot.dataset.tipo;
                 const mapUbicacion = { 'delantera':'delantero', 'trasera':'trasero' };
 
-                if(mapUbicacion[c.ubicacion.toLowerCase()]!==tipoSlot){
+                if(mapUbicacion[c.ubicacion.toLowerCase()] !== tipoSlot){
                     alert(`Este cargador es ${c.ubicacion} y no puede colocarse aquí.`);
                 } else {
-
-                    // quitar si ya está asignado
                     document.querySelectorAll('.slot').forEach(s=>{
                         if(s.dataset.asignado===c.nombre){
                             s.textContent='';
@@ -639,27 +627,22 @@ function activarDragMovil(){
                             s.dataset.asignado='';
                         }
                     });
-
                     slot.textContent=c.nombre;
                     ajustarTextoEnSlot(slot);
                     slot.style.background=c.colorTunica;
                     slot.style.color='black';
                     slot.dataset.asignado=c.nombre;
-
                     guardarSlots();
                 }
             }
 
             document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
-
             lastHighlightedSlot = null;
             draggedIndex = null;
-
         });
-
     });
-
 }
+
 
 
 

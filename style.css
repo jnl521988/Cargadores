@@ -234,9 +234,9 @@ overflow: scroll;
         grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
     }
 }
-.slot.highlight{
-    background: rgba(0,0,0,0.2) !important;
-    border: 2px solid #000;
+.slot.highlight {
+    background: #bbb !important;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    transform: scale(1.05);
 }
-
 

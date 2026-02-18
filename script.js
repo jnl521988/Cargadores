@@ -5,9 +5,6 @@ let chargers = [];
 let editIndex = null;
 let draggedIndex = null;
 let imagenBase64 = "";
-let lastHighlightedSlot = null;
-let draggedClone = null;
-
 
 
 let paso = {
@@ -551,59 +548,37 @@ function renderMapChargerList(){
 // ------------------------
 // DRAG PARA MÓVIL
 // ------------------------
-function activarDragMovil(){
-    if(esMovil()){
-    activarDragMovil();
-} else {
-    activarDragPC();
-}
+let lastHighlightedSlot = null;
 
+function activarDragMovil(){
 
     document.querySelectorAll('#mapChargerList li').forEach(li=>{
 
-        // 🟢 TOUCH START
         li.addEventListener('touchstart', e=>{
 
-            // obtener index real
+            li.classList.add('dragging');
+
+            // 🔥 GUARDAR INDEX DEL CARGADOR
             const nombre = li.textContent.replace(/^\d+\.\s/, '');
             draggedIndex = chargers.findIndex(c => c.nombre === nombre);
 
-            // 🔥 crear clon visual (NO mover el original)
-            draggedClone = li.cloneNode(true);
+        });
 
-            draggedClone.style.position = 'fixed';
-            draggedClone.style.zIndex = 9999;
-            draggedClone.style.pointerEvents = 'none';
-            draggedClone.style.opacity = '0.9';
-            draggedClone.style.background = '#fff';
-            draggedClone.style.padding = '5px 10px';
-            draggedClone.style.border = '1px solid #ccc';
-            draggedClone.style.borderRadius = '6px';
-            draggedClone.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
-            draggedClone.style.fontWeight = 'bold';
-
-            document.body.appendChild(draggedClone);
-
-        }, { passive: false });
-
-
-        // 🟢 TOUCH MOVE
         li.addEventListener('touchmove', e=>{
 
             const touch = e.touches[0];
 
-            e.preventDefault(); // 🔥 clave para móvil
+            li.style.position='absolute';
+            li.style.zIndex=1000;
+            li.style.left=(touch.clientX-40)+'px';
+            li.style.top=(touch.clientY-20)+'px';
 
-            // mover clon
-            if(draggedClone){
-                draggedClone.style.left = (touch.clientX - 40) + 'px';
-                draggedClone.style.top = (touch.clientY - 20) + 'px';
-            }
+            // 🔥 IMPORTANTE
+            li.style.pointerEvents = 'none';
 
-            // detectar slot
             const element = document.elementFromPoint(touch.clientX, touch.clientY);
 
-            // limpiar highlights
+            // quitar resaltado
             document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
 
             if(element && element.classList.contains('slot')){
@@ -613,11 +588,14 @@ function activarDragMovil(){
                 lastHighlightedSlot = null;
             }
 
-        }, { passive: false });
+        });
 
+        li.addEventListener('touchend', e=>{
 
-        // 🟢 TOUCH END
-        li.addEventListener('touchend', ()=>{
+            li.classList.remove('dragging');
+
+            // volver a activar eventos
+            li.style.pointerEvents = 'auto';
 
             if(lastHighlightedSlot && draggedIndex !== null){
 
@@ -627,47 +605,44 @@ function activarDragMovil(){
                 const tipoSlot = slot.dataset.tipo;
                 const mapUbicacion = { 'delantera':'delantero', 'trasera':'trasero' };
 
-                if(mapUbicacion[c.ubicacion.toLowerCase()] !== tipoSlot){
+                if(mapUbicacion[c.ubicacion.toLowerCase()]!==tipoSlot){
                     alert(`Este cargador es ${c.ubicacion} y no puede colocarse aquí.`);
                 } else {
 
-                    // quitar si ya estaba colocado
                     document.querySelectorAll('.slot').forEach(s=>{
-                        if(s.dataset.asignado === c.nombre){
-                            s.textContent = '';
-                            s.style.background = '#eee';
-                            s.dataset.asignado = '';
+                        if(s.dataset.asignado===c.nombre){
+                            s.textContent='';
+                            s.style.background='#eee';
+                            s.dataset.asignado='';
                         }
                     });
 
-                    // asignar
-                    slot.textContent = c.nombre;
+                    slot.textContent=c.nombre;
                     ajustarTextoEnSlot(slot);
-                    slot.style.background = c.colorTunica;
-                    slot.style.color = 'black';
-                    slot.dataset.asignado = c.nombre;
+                    slot.style.background=c.colorTunica;
+                    slot.style.color='black';
+                    slot.dataset.asignado=c.nombre;
 
                     guardarSlots();
                 }
             }
 
-            // limpiar resaltado
+            // quitar resaltado
             document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
             lastHighlightedSlot = null;
 
-            // eliminar clon
-            if(draggedClone){
-                draggedClone.remove();
-                draggedClone = null;
-            }
+            li.style.position='';
+            li.style.left='';
+            li.style.top='';
+            li.style.zIndex='';
 
             draggedIndex = null;
 
         });
 
     });
-}
 
+}
 
 
 function ajustarTextoEnSlot(slot){
@@ -703,93 +678,46 @@ function exportPDF(){
 // ------------------------
 // EXPORT JPG
 // ------------------------
-function exportMapJPG(){
-
+function exportMapJPG() {
     const mapArea = document.getElementById('mapArea');
     const nombrePaso = document.getElementById('nombrePasoMapaInput')?.value || 'Mapa del Paso';
 
-    // 🔥 calcular tamaño real del contenido
-    const width = mapArea.scrollWidth;
-    const height = mapArea.scrollHeight;
+    // Crear contenedor temporal
+    const tempContainer = mapArea.cloneNode(true);
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px'; // Fuera de pantalla
+    tempContainer.style.width = mapArea.scrollWidth + 'px';
+    tempContainer.style.height = mapArea.scrollHeight + 'px';
+    tempContainer.style.overflow = 'visible'; // Asegura que todo sea visible
+    document.body.appendChild(tempContainer);
 
-    // 🔥 clonar el mapa para no romper el original
-    const clone = mapArea.cloneNode(true);
+    html2canvas(tempContainer).then(canvasMapa => {
+        const paddingTop = 60;
+        const nuevoCanvas = document.createElement('canvas');
+        const ctx = nuevoCanvas.getContext('2d');
 
-    clone.style.width = width + 'px';
-    clone.style.height = height + 'px';
-    clone.style.overflow = 'visible';
+        nuevoCanvas.width = canvasMapa.width;
+        nuevoCanvas.height = canvasMapa.height + paddingTop;
 
-    // 🔥 contenedor oculto fuera de pantalla
-    const container = document.createElement('div');
-    container.style.position = 'fixed';
-    container.style.left = '-9999px';
-    container.style.top = '0';
-    container.style.background = '#fff';
-    container.appendChild(clone);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, nuevoCanvas.width, nuevoCanvas.height);
 
-    document.body.appendChild(container);
+        ctx.fillStyle = "#000000";
+        ctx.font = "bold 28px Segoe UI";
+        ctx.textAlign = "center";
+        ctx.fillText(nombrePaso, nuevoCanvas.width / 2, 40);
 
-    // 🔥 esperar a que renderice (clave en móvil)
-    setTimeout(()=>{
+        ctx.drawImage(canvasMapa, 0, paddingTop);
 
-        html2canvas(clone, {
-            scale: 2, // 🔥 mejor calidad
-            useCORS: true,
-            backgroundColor: "#ffffff",
-            width: width,
-            height: height,
-            scrollX: 0,
-            scrollY: 0,
-            windowWidth: width,
-            windowHeight: height
-        }).then(canvasMapa => {
+        const link = document.createElement('a');
+        link.download = "mapa_paso.jpg";
+        link.href = nuevoCanvas.toDataURL("image/jpeg", 0.95);
+        link.click();
 
-            const paddingTop = 70;
-
-            // 🔥 canvas final con título
-            const finalCanvas = document.createElement('canvas');
-            const ctx = finalCanvas.getContext('2d');
-
-            finalCanvas.width = canvasMapa.width;
-            finalCanvas.height = canvasMapa.height + paddingTop;
-
-            // fondo blanco
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-
-            // título
-            ctx.fillStyle = "#000";
-            ctx.font = "bold 30px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText(nombrePaso, finalCanvas.width / 2, 40);
-
-            // mapa
-            ctx.drawImage(canvasMapa, 0, paddingTop);
-
-            // 🔥 EXPORT COMPATIBLE MÓVIL + PC
-            const imgData = finalCanvas.toDataURL("image/jpeg", 0.95);
-
-            // móvil (iOS / Android)
-            const link = document.createElement('a');
-            link.href = imgData;
-            link.download = 'mapa_paso.jpg';
-
-            // algunos móviles necesitan esto
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            // limpiar
-            document.body.removeChild(container);
-
-        });
-
-    }, 300); // 🔥 delay necesario para móvil
+        // Limpiar contenedor temporal
+        document.body.removeChild(tempContainer);
+    });
 }
-function esMovil(){
-    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
-
 
 
 

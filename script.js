@@ -3,8 +3,12 @@
 // ------------------------
 let chargers = [];
 let editIndex = null;
-let draggedIndex = null;
 let imagenBase64 = "";
+let draggedIndex = null;
+let draggedClone = null;
+let lastHighlightedSlot = null;
+
+
 
 
 let paso = {
@@ -531,7 +535,14 @@ function renderMapChargerList(){
                 draggedIndex = chargers.indexOf(c);
                 e.dataTransfer.setData('text', draggedIndex);
             };
-            li.addEventListener('touchstart', ()=>{ draggedIndex = chargers.indexOf(c); });
+           const index = chargers.indexOf(c);
+
+li.dataset.index = index;
+
+li.addEventListener('touchstart', ()=>{
+    draggedIndex = index;
+});
+
             ul.appendChild(li);
         });
         div.appendChild(ul);
@@ -546,9 +557,9 @@ function renderMapChargerList(){
 }
 
 // ------------------------
-// DRAG PARA MÓVIL
+// DRAG PARA MÓVIL (VERSIÓN PRO)
 // ------------------------
-let lastHighlightedSlot = null;
+
 
 function activarDragMovil(){
 
@@ -556,29 +567,45 @@ function activarDragMovil(){
 
         li.addEventListener('touchstart', e=>{
 
-            li.classList.add('dragging');
+            draggedIndex = li.dataset.index;
 
-            // 🔥 GUARDAR INDEX DEL CARGADOR
-            const nombre = li.textContent.replace(/^\d+\.\s/, '');
-            draggedIndex = chargers.findIndex(c => c.nombre === nombre);
+            // 🔥 Crear clon visual
+            draggedClone = li.cloneNode(true);
+            draggedClone.style.position = 'fixed';
+            draggedClone.style.zIndex = 1000;
+            draggedClone.style.pointerEvents = 'none';
+            draggedClone.style.opacity = '0.85';
+            draggedClone.style.background = '#fff';
+            draggedClone.style.padding = '5px';
+            draggedClone.style.border = '1px solid #ccc';
+            draggedClone.style.borderRadius = '5px';
+            draggedClone.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
+            draggedClone.style.fontWeight = 'bold';
 
+            document.body.appendChild(draggedClone);
         });
+
 
         li.addEventListener('touchmove', e=>{
 
             const touch = e.touches[0];
+            e.preventDefault();
 
-            li.style.position='absolute';
-            li.style.zIndex=1000;
-            li.style.left=(touch.clientX-40)+'px';
-            li.style.top=(touch.clientY-20)+'px';
 
-            // 🔥 IMPORTANTE
-            li.style.pointerEvents = 'none';
+            // 🔥 Mover el clon
+            if(draggedClone){
+                draggedClone.style.left = (touch.clientX - 40) + 'px';
+                draggedClone.style.top = (touch.clientY - 20) + 'px';
+            }
 
+            if(draggedClone){
+    draggedClone.style.pointerEvents = 'none';
+}
+
+            // 🔥 Detectar slot debajo del dedo
             const element = document.elementFromPoint(touch.clientX, touch.clientY);
 
-            // quitar resaltado
+            // limpiar highlights
             document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
 
             if(element && element.classList.contains('slot')){
@@ -587,15 +614,10 @@ function activarDragMovil(){
             } else {
                 lastHighlightedSlot = null;
             }
-
         });
 
+
         li.addEventListener('touchend', e=>{
-
-            li.classList.remove('dragging');
-
-            // volver a activar eventos
-            li.style.pointerEvents = 'auto';
 
             if(lastHighlightedSlot && draggedIndex !== null){
 
@@ -605,43 +627,44 @@ function activarDragMovil(){
                 const tipoSlot = slot.dataset.tipo;
                 const mapUbicacion = { 'delantera':'delantero', 'trasera':'trasero' };
 
-                if(mapUbicacion[c.ubicacion.toLowerCase()]!==tipoSlot){
+                if(mapUbicacion[c.ubicacion.toLowerCase()] !== tipoSlot){
                     alert(`Este cargador es ${c.ubicacion} y no puede colocarse aquí.`);
                 } else {
 
+                    // quitar si ya estaba asignado
                     document.querySelectorAll('.slot').forEach(s=>{
-                        if(s.dataset.asignado===c.nombre){
-                            s.textContent='';
-                            s.style.background='#eee';
-                            s.dataset.asignado='';
+                        if(s.dataset.asignado === c.nombre){
+                            s.textContent = '';
+                            s.style.background = '#eee';
+                            s.dataset.asignado = '';
                         }
                     });
 
-                    slot.textContent=c.nombre;
+                    // asignar al nuevo slot
+                    slot.textContent = c.nombre;
                     ajustarTextoEnSlot(slot);
-                    slot.style.background=c.colorTunica;
-                    slot.style.color='black';
-                    slot.dataset.asignado=c.nombre;
+                    slot.style.background = c.colorTunica;
+                    slot.style.color = 'black';
+                    slot.dataset.asignado = c.nombre;
 
                     guardarSlots();
                 }
             }
 
-            // quitar resaltado
+            // 🔥 limpiar resaltado
             document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
             lastHighlightedSlot = null;
 
-            li.style.position='';
-            li.style.left='';
-            li.style.top='';
-            li.style.zIndex='';
+            // 🔥 eliminar clon
+            if(draggedClone){
+                draggedClone.remove();
+                draggedClone = null;
+            }
 
             draggedIndex = null;
-
         });
 
     });
-
 }
 
 

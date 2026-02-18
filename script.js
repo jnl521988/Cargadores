@@ -552,6 +552,12 @@ function renderMapChargerList(){
 // DRAG PARA MÓVIL
 // ------------------------
 function activarDragMovil(){
+    if(esMovil()){
+    activarDragMovil();
+} else {
+    activarDragPC();
+}
+
 
     document.querySelectorAll('#mapChargerList li').forEach(li=>{
 
@@ -779,6 +785,9 @@ function exportMapJPG(){
         });
 
     }, 300); // 🔥 delay necesario para móvil
+}
+function esMovil(){
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
 

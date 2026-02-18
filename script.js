@@ -1,6 +1,11 @@
 // ------------------------
 // VARIABLES GLOBALES
 // ------------------------
+function esMovil(){
+    return ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+}
+
+
 let chargers = [];
 let editIndex = null;
 let draggedIndex = null;
@@ -452,7 +457,10 @@ function crearMapaBanzos(numBanzos, numPorBanzo){
     crearBanzos(traserosDiv, restantes, 'trasero');
 
     cargarSlots();
+    if(esMovil()){
     activarDragMovil();
+}
+
 }
 
 // ------------------------
@@ -548,6 +556,7 @@ function renderMapChargerList(){
 // ------------------------
 // DRAG PARA MÓVIL
 // ------------------------
+let dragClone = null;
 let lastHighlightedSlot = null;
 
 function activarDragMovil(){
@@ -556,29 +565,42 @@ function activarDragMovil(){
 
         li.addEventListener('touchstart', e=>{
 
-            li.classList.add('dragging');
+            const touch = e.touches[0];
 
-            // 🔥 GUARDAR INDEX DEL CARGADOR
+            // 🔥 obtener nombre sin número
             const nombre = li.textContent.replace(/^\d+\.\s/, '');
             draggedIndex = chargers.findIndex(c => c.nombre === nombre);
 
-        });
+            // 🔥 crear clon visual
+            dragClone = li.cloneNode(true);
+            dragClone.style.position = 'fixed';
+            dragClone.style.left = touch.clientX + 'px';
+            dragClone.style.top = touch.clientY + 'px';
+            dragClone.style.zIndex = 9999;
+            dragClone.style.background = '#fff';
+            dragClone.style.padding = '5px 10px';
+            dragClone.style.border = '1px solid #000';
+            dragClone.style.borderRadius = '5px';
+            dragClone.style.pointerEvents = 'none';
+            dragClone.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
+
+            document.body.appendChild(dragClone);
+
+        }, { passive: false });
 
         li.addEventListener('touchmove', e=>{
 
+            if(!dragClone) return;
+
             const touch = e.touches[0];
 
-            li.style.position='absolute';
-            li.style.zIndex=1000;
-            li.style.left=(touch.clientX-40)+'px';
-            li.style.top=(touch.clientY-20)+'px';
+            // mover clon
+            dragClone.style.left = (touch.clientX - 40) + 'px';
+            dragClone.style.top = (touch.clientY - 20) + 'px';
 
-            // 🔥 IMPORTANTE
-            li.style.pointerEvents = 'none';
-
+            // detectar slot debajo
             const element = document.elementFromPoint(touch.clientX, touch.clientY);
 
-            // quitar resaltado
             document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
 
             if(element && element.classList.contains('slot')){
@@ -588,14 +610,14 @@ function activarDragMovil(){
                 lastHighlightedSlot = null;
             }
 
-        });
+        }, { passive: false });
 
         li.addEventListener('touchend', e=>{
 
-            li.classList.remove('dragging');
-
-            // volver a activar eventos
-            li.style.pointerEvents = 'auto';
+            if(dragClone){
+                dragClone.remove();
+                dragClone = null;
+            }
 
             if(lastHighlightedSlot && draggedIndex !== null){
 
@@ -609,6 +631,7 @@ function activarDragMovil(){
                     alert(`Este cargador es ${c.ubicacion} y no puede colocarse aquí.`);
                 } else {
 
+                    // quitar si ya está asignado
                     document.querySelectorAll('.slot').forEach(s=>{
                         if(s.dataset.asignado===c.nombre){
                             s.textContent='';
@@ -627,15 +650,9 @@ function activarDragMovil(){
                 }
             }
 
-            // quitar resaltado
             document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
+
             lastHighlightedSlot = null;
-
-            li.style.position='';
-            li.style.left='';
-            li.style.top='';
-            li.style.zIndex='';
-
             draggedIndex = null;
 
         });
@@ -643,6 +660,7 @@ function activarDragMovil(){
     });
 
 }
+
 
 
 function ajustarTextoEnSlot(slot){

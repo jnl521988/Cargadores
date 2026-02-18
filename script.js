@@ -697,46 +697,90 @@ function exportPDF(){
 // ------------------------
 // EXPORT JPG
 // ------------------------
-function exportMapJPG() {
+function exportMapJPG(){
+
     const mapArea = document.getElementById('mapArea');
     const nombrePaso = document.getElementById('nombrePasoMapaInput')?.value || 'Mapa del Paso';
 
-    // Crear contenedor temporal
-    const tempContainer = mapArea.cloneNode(true);
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.left = '-9999px'; // Fuera de pantalla
-    tempContainer.style.width = mapArea.scrollWidth + 'px';
-    tempContainer.style.height = mapArea.scrollHeight + 'px';
-    tempContainer.style.overflow = 'visible'; // Asegura que todo sea visible
-    document.body.appendChild(tempContainer);
+    // 🔥 calcular tamaño real del contenido
+    const width = mapArea.scrollWidth;
+    const height = mapArea.scrollHeight;
 
-    html2canvas(tempContainer).then(canvasMapa => {
-        const paddingTop = 60;
-        const nuevoCanvas = document.createElement('canvas');
-        const ctx = nuevoCanvas.getContext('2d');
+    // 🔥 clonar el mapa para no romper el original
+    const clone = mapArea.cloneNode(true);
 
-        nuevoCanvas.width = canvasMapa.width;
-        nuevoCanvas.height = canvasMapa.height + paddingTop;
+    clone.style.width = width + 'px';
+    clone.style.height = height + 'px';
+    clone.style.overflow = 'visible';
 
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, nuevoCanvas.width, nuevoCanvas.height);
+    // 🔥 contenedor oculto fuera de pantalla
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.background = '#fff';
+    container.appendChild(clone);
 
-        ctx.fillStyle = "#000000";
-        ctx.font = "bold 28px Segoe UI";
-        ctx.textAlign = "center";
-        ctx.fillText(nombrePaso, nuevoCanvas.width / 2, 40);
+    document.body.appendChild(container);
 
-        ctx.drawImage(canvasMapa, 0, paddingTop);
+    // 🔥 esperar a que renderice (clave en móvil)
+    setTimeout(()=>{
 
-        const link = document.createElement('a');
-        link.download = "mapa_paso.jpg";
-        link.href = nuevoCanvas.toDataURL("image/jpeg", 0.95);
-        link.click();
+        html2canvas(clone, {
+            scale: 2, // 🔥 mejor calidad
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            width: width,
+            height: height,
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: width,
+            windowHeight: height
+        }).then(canvasMapa => {
 
-        // Limpiar contenedor temporal
-        document.body.removeChild(tempContainer);
-    });
+            const paddingTop = 70;
+
+            // 🔥 canvas final con título
+            const finalCanvas = document.createElement('canvas');
+            const ctx = finalCanvas.getContext('2d');
+
+            finalCanvas.width = canvasMapa.width;
+            finalCanvas.height = canvasMapa.height + paddingTop;
+
+            // fondo blanco
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+
+            // título
+            ctx.fillStyle = "#000";
+            ctx.font = "bold 30px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(nombrePaso, finalCanvas.width / 2, 40);
+
+            // mapa
+            ctx.drawImage(canvasMapa, 0, paddingTop);
+
+            // 🔥 EXPORT COMPATIBLE MÓVIL + PC
+            const imgData = finalCanvas.toDataURL("image/jpeg", 0.95);
+
+            // móvil (iOS / Android)
+            const link = document.createElement('a');
+            link.href = imgData;
+            link.download = 'mapa_paso.jpg';
+
+            // algunos móviles necesitan esto
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // limpiar
+            document.body.removeChild(container);
+
+        });
+
+    }, 300); // 🔥 delay necesario para móvil
 }
+
 
 
 

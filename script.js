@@ -684,22 +684,91 @@ function ajustarTextoEnSlot(slot){
 // ------------------------
 // EXPORT PDF
 // ------------------------
-function exportPDF(){
+function exportPDF() {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.text("DATOS DEL PASO",10,10);
-    doc.text("Nombre: "+paso.nombre,10,20);
-    doc.text("Fecha Ejecución: "+paso.fecha,10,30);
-    doc.text("Medidas: "+paso.medidas+"m",10,40);
-    doc.text("Peso Total: "+paso.pesoTotal+" kg",10,50);
-    doc.text("Número de Cargadores: "+paso.numCargadores,10,60);
-    doc.text("Peso Medio por Cargador: "+paso.pesoMedio+" kg",10,70);
-    doc.text("LISTA DE CARGADORES:",10,80);
-    chargers.forEach((c,i)=>{
-        doc.text(`${i+1}. ${c.nombre}, ${c.edad} años, ${c.telefono}, ${c.estatura}m, ${c.colorTunica}, ${c.ubicacion}`,10,90+i*10);
+    const doc = new jsPDF('p', 'mm', 'a4'); // vertical, mm, tamaño A4
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 10;
+    let y = 20; // posición vertical inicial
+
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("DATOS DEL PASO", pageWidth / 2, y, { align: 'center' });
+    y += 10;
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+
+    const lineHeight = 7;
+
+    // Información del paso
+    const pasoDatos = [
+        `Nombre: ${paso.nombre}`,
+        `Fecha Ejecución: ${paso.fecha}`,
+        `Medidas: ${paso.medidas} m`,
+        `Peso Total: ${paso.pesoTotal} kg`,
+        `Número de Cargadores: ${paso.numCargadores}`,
+        `Peso Medio por Cargador: ${paso.pesoMedio} kg`
+    ];
+
+    pasoDatos.forEach(texto => {
+        doc.text(texto, margin, y);
+        y += lineHeight;
     });
+
+    y += 5;
+    doc.setFont("helvetica", "bold");
+    doc.text("LISTA DE CARGADORES:", margin, y);
+    y += lineHeight;
+    doc.setFont("helvetica", "normal");
+
+    // Cabecera de tabla
+    const headers = ["#", "Nombre", "Edad", "Teléfono", "Estatura", "Color", "Ubicación"];
+    const colWidths = [10, 50, 15, 40, 20, 25, 25]; // aprox en mm
+    let x = margin;
+
+    headers.forEach((h, i) => {
+        doc.text(h, x, y);
+        x += colWidths[i];
+    });
+
+    y += lineHeight;
+
+    chargers.forEach((c, i) => {
+        x = margin;
+
+        // recalcular edad actual
+        const anioActual = new Date().getFullYear();
+        const edadActual = c.edadInicial + (anioActual - c.anioRegistro);
+
+        const row = [
+            (i + 1).toString(),
+            c.nombre,
+            edadActual + " años",
+            c.telefono,
+            c.estatura + "m",
+            c.colorTunica,
+            c.ubicacion
+        ];
+
+        // Saltar de página si nos acercamos al final
+        if (y + lineHeight > pageHeight - margin) {
+            doc.addPage();
+            y = margin + 5;
+        }
+
+        row.forEach((text, j) => {
+            doc.text(text, x, y);
+            x += colWidths[j];
+        });
+
+        y += lineHeight;
+    });
+
     doc.save("Paso_Cargadores.pdf");
 }
+
 
 // ------------------------
 // EXPORT JPG

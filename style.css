@@ -240,3 +240,11 @@ overflow: scroll;
     transform: scale(1.05);
 }
 
+/* 🔥 evita scroll mientras arrastras */
+.dragging{
+    touch-action: none;
+}
+body.dragging-active {
+    overflow: hidden;
+}
+

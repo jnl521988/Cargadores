@@ -562,47 +562,58 @@ function activarDragMovil(){
         li.ontouchmove = null;
         li.ontouchend = null;
 
-        li.addEventListener('touchstart', e=>{
+       li.addEventListener('touchstart', e=>{
+        document.body.classList.add('dragging-active');
 
-            const touch = e.touches[0];
 
-            li.classList.add('dragging');
+    e.preventDefault(); // 🔥 MUY IMPORTANTE
 
-            // guardar index del cargador
-            const nombre = li.textContent.replace(/^\d+\.\s/, '');
-            draggedIndex = chargers.findIndex(c => c.nombre === nombre);
+    const touch = e.touches[0];
 
-            // posición inicial
-            li.style.position = 'fixed';
-            li.style.zIndex = '9999';
-            li.style.left = touch.clientX + 'px';
-            li.style.top = touch.clientY + 'px';
-            li.style.pointerEvents = 'none'; // clave
+    li.classList.add('dragging');
 
-        });
+    const nombre = li.textContent.replace(/^\d+\.\s/, '');
+    draggedIndex = chargers.findIndex(c => c.nombre === nombre);
 
-        li.addEventListener('touchmove', e=>{
+    li.style.position = 'fixed';
+    li.style.zIndex = '9999';
+    li.style.left = touch.clientX + 'px';
+    li.style.top = touch.clientY + 'px';
+    li.style.pointerEvents = 'none';
 
-            const touch = e.touches[0];
+});
 
-            // mover elemento
-            li.style.left = (touch.clientX - 40) + 'px';
-            li.style.top = (touch.clientY - 20) + 'px';
 
-            // detectar slot debajo
-            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+       li.addEventListener('touchmove', e=>{
+        document.body.classList.add('dragging-active');
 
-            // limpiar highlights
-            document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
 
-            if(element && element.classList.contains('slot')){
-                element.classList.add('highlight');
-                lastHighlightedSlot = element;
-            } else {
-                lastHighlightedSlot = null;
-            }
+    e.preventDefault(); // 🔥 CLAVE PARA QUE FUNCIONE EN MÓVIL
 
-        });
+    const touch = e.touches[0];
+
+    // mover elemento
+    li.style.left = (touch.clientX - 40) + 'px';
+    li.style.top = (touch.clientY - 20) + 'px';
+
+    // 🔥 DETECCIÓN REAL DEL SLOT
+    const element = document.elementFromPoint(
+        touch.clientX,
+        touch.clientY
+    );
+
+    // limpiar todos
+    document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
+
+    if(element && element.classList.contains('slot')){
+        element.classList.add('highlight');
+        lastHighlightedSlot = element;
+    } else {
+        lastHighlightedSlot = null;
+    }
+
+});
+
 
         li.addEventListener('touchend', e=>{
 

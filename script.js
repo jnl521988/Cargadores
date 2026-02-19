@@ -131,7 +131,7 @@ function openModal(index = null){
     document.getElementById('ubicacion').value = c.ubicacion;
     } else {
         editIndex = null;
-        document.getElementById('modalTitle').innerText = "Agregar Cargador";
+        document.getElementById('modalTitle').innerText = "AGREGAR CARGADOR";
         document.querySelectorAll('#modal input, #modal select').forEach(i => i.value = '');
     }
 }
@@ -172,7 +172,7 @@ function updateChargerList(){
     chargers.forEach((c,i) => {
         const edadActual = c.edadInicial + (anioActual - c.anioRegistro); // recalcula la edad
         const li = document.createElement('li');
-        li.textContent = `${c.nombre} - ${edadActual} años - ${c.telefono} - ${c.estatura}m - ${c.colorTunica} - ${c.ubicacion}`;
+        li.textContent = `${c.nombre} / ${edadActual} años / ${c.telefono} / ${c.estatura} m / ${c.colorTunica} / ${c.ubicacion}`;
 
         const editBtn = document.createElement('button'); 
         editBtn.textContent='Editar'; 
@@ -724,8 +724,8 @@ function exportPDF() {
     doc.setFont("helvetica", "normal");
 
     // Cabecera de tabla
-    const headers = ["#", "Nombre", "Edad", "Teléfono", "Estatura", "Color", "Ubicación"];
-    const colWidths = [10, 50, 15, 40, 20, 25, 25]; // aprox en mm
+    const headers = ["Nº", "Nombre", "Edad", "Teléfono", "Estatura", "Color", "Ubicación"];
+    const colWidths = [10, 50, 25, 35, 25, 25, 25]; // aprox en mm
     let x = margin;
 
     headers.forEach((h, i) => {
@@ -747,7 +747,7 @@ function exportPDF() {
             c.nombre,
             edadActual + " años",
             c.telefono,
-            c.estatura + "m",
+            c.estatura + " m",
             c.colorTunica,
             c.ubicacion
         ];

@@ -87,7 +87,7 @@ button:active {
 }
 
 .modal-content {
-    background: white;
+    background: rgb(202, 177, 219);
     margin: 5% auto;
     padding: 20px;
     width: 400px;
@@ -248,3 +248,37 @@ body.dragging-active {
     overflow: hidden;
 }
 
+/* Botones de navegación */
+.nav-btn {
+    background-color: #3ba4ca; /* gris oscuro */
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    margin-right: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.nav-btn:hover {
+    background-color: #cb7474; /* más oscuro al pasar mouse */
+}
+
+/* Botones de exportación */
+.export-btn {
+    background-color: #58c85c; /* verde */
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    margin-left: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.export-btn:hover {
+    background-color: #d2b850; /* verde más oscuro */
+    transform: scale(1.05); /* efecto de agrandamiento al pasar mouse */
+}

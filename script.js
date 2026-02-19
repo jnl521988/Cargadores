@@ -777,16 +777,25 @@ function exportMapJPG() {
     const mapArea = document.getElementById('mapArea');
     const nombrePaso = document.getElementById('nombrePasoMapaInput')?.value || 'Mapa del Paso';
 
-    // Crear contenedor temporal
+    // clonar el mapa
     const tempContainer = mapArea.cloneNode(true);
     tempContainer.style.position = 'absolute';
-    tempContainer.style.left = '-9999px'; // Fuera de pantalla
-    tempContainer.style.width = mapArea.scrollWidth + 'px';
-    tempContainer.style.height = mapArea.scrollHeight + 'px';
-    tempContainer.style.overflow = 'visible'; // Asegura que todo sea visible
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.top = '0';
+    tempContainer.style.overflow = 'visible';
+    tempContainer.style.display = 'flex';
+    tempContainer.style.flexDirection = 'column';
+    tempContainer.style.width = 'auto';
+    tempContainer.style.height = 'auto';
     document.body.appendChild(tempContainer);
 
-    html2canvas(tempContainer).then(canvasMapa => {
+    // forzar que los contenedores internos expandan su scroll
+    tempContainer.querySelectorAll('.banzos-container').forEach(div => {
+        div.style.overflow = 'visible';
+        div.style.width = div.scrollWidth + 'px';
+    });
+
+    html2canvas(tempContainer, { scale: 2, useCORS: true, allowTaint: true }).then(canvasMapa => {
         const paddingTop = 60;
         const nuevoCanvas = document.createElement('canvas');
         const ctx = nuevoCanvas.getContext('2d');
@@ -794,25 +803,30 @@ function exportMapJPG() {
         nuevoCanvas.width = canvasMapa.width;
         nuevoCanvas.height = canvasMapa.height + paddingTop;
 
+        // fondo blanco
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, nuevoCanvas.width, nuevoCanvas.height);
 
+        // nombre del paso arriba
         ctx.fillStyle = "#000000";
         ctx.font = "bold 28px Segoe UI";
         ctx.textAlign = "center";
         ctx.fillText(nombrePaso, nuevoCanvas.width / 2, 40);
 
+        // dibujar mapa completo
         ctx.drawImage(canvasMapa, 0, paddingTop);
 
+        // descargar
         const link = document.createElement('a');
         link.download = "mapa_paso.jpg";
         link.href = nuevoCanvas.toDataURL("image/jpeg", 0.95);
         link.click();
 
-        // Limpiar contenedor temporal
+        // limpiar
         document.body.removeChild(tempContainer);
     });
 }
+
 
 
 

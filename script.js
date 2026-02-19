@@ -564,33 +564,41 @@ function activarDragMovil(){
 
         });
 
-        li.addEventListener('touchmove', e=>{
+       let lastHighlightedSlot = null;
 
-            const touch = e.touches[0];
+li.addEventListener('touchmove', e=>{
+    const touch = e.touches[0];
 
-            li.style.position='absolute';
-            li.style.zIndex=1000;
-            li.style.left=(touch.clientX-40)+'px';
-            li.style.top=(touch.clientY-20)+'px';
+    li.style.position='absolute';
+    li.style.zIndex=1000;
+    li.style.left=(touch.clientX-40)+'px';
+    li.style.top=(touch.clientY-20)+'px';
 
-            // 🔥 IMPORTANTE
-            li.style.pointerEvents = 'none';
+    // 🔥 CLAVE: ocultar el li para detectar lo de abajo
+    li.style.pointerEvents = 'none';
 
-            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
 
-            // quitar resaltado
-            document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
+    // limpiar todos
+    document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
 
-            if(element && element.classList.contains('slot')){
-                element.classList.add('highlight');
-                lastHighlightedSlot = element;
-            } else {
-                lastHighlightedSlot = null;
-            }
+    // si es un slot
+    if(element && element.classList.contains('slot')){
+        element.classList.add('highlight');
+        lastHighlightedSlot = element;
+    } else {
+        lastHighlightedSlot = null;
+    }
 
-        });
+    // 🔥 volver a activar
+    li.style.pointerEvents = 'auto';
+
+});
 
         li.addEventListener('touchend', e=>{
+
+            document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
+lastHighlightedSlot = null;
 
             li.classList.remove('dragging');
 

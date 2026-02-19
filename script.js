@@ -546,64 +546,67 @@ function renderMapChargerList(){
 }
 
 // ------------------------
-// DRAG PARA MÓVIL
+// DRAG PARA MÓVIL (VERSIÓN FINAL)
 // ------------------------
+
 let lastHighlightedSlot = null;
 
 function activarDragMovil(){
 
-    document.querySelectorAll('#mapChargerList li').forEach(li=>{
+    const items = document.querySelectorAll('#mapChargerList li');
+
+    items.forEach(li=>{
+
+        // evitar duplicados de eventos
+        li.ontouchstart = null;
+        li.ontouchmove = null;
+        li.ontouchend = null;
 
         li.addEventListener('touchstart', e=>{
 
+            const touch = e.touches[0];
+
             li.classList.add('dragging');
 
-            // 🔥 GUARDAR INDEX DEL CARGADOR
+            // guardar index del cargador
             const nombre = li.textContent.replace(/^\d+\.\s/, '');
             draggedIndex = chargers.findIndex(c => c.nombre === nombre);
 
+            // posición inicial
+            li.style.position = 'fixed';
+            li.style.zIndex = '9999';
+            li.style.left = touch.clientX + 'px';
+            li.style.top = touch.clientY + 'px';
+            li.style.pointerEvents = 'none'; // clave
+
         });
 
-       let lastHighlightedSlot = null;
+        li.addEventListener('touchmove', e=>{
 
-li.addEventListener('touchmove', e=>{
-    const touch = e.touches[0];
+            const touch = e.touches[0];
 
-    li.style.position='absolute';
-    li.style.zIndex=1000;
-    li.style.left=(touch.clientX-40)+'px';
-    li.style.top=(touch.clientY-20)+'px';
+            // mover elemento
+            li.style.left = (touch.clientX - 40) + 'px';
+            li.style.top = (touch.clientY - 20) + 'px';
 
-    // 🔥 CLAVE: ocultar el li para detectar lo de abajo
-    li.style.pointerEvents = 'none';
+            // detectar slot debajo
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
 
-    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+            // limpiar highlights
+            document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
 
-    // limpiar todos
-    document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
+            if(element && element.classList.contains('slot')){
+                element.classList.add('highlight');
+                lastHighlightedSlot = element;
+            } else {
+                lastHighlightedSlot = null;
+            }
 
-    // si es un slot
-    if(element && element.classList.contains('slot')){
-        element.classList.add('highlight');
-        lastHighlightedSlot = element;
-    } else {
-        lastHighlightedSlot = null;
-    }
-
-    // 🔥 volver a activar
-    li.style.pointerEvents = 'auto';
-
-});
+        });
 
         li.addEventListener('touchend', e=>{
 
-            document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
-lastHighlightedSlot = null;
-
             li.classList.remove('dragging');
-
-            // volver a activar eventos
-            li.style.pointerEvents = 'auto';
 
             if(lastHighlightedSlot && draggedIndex !== null){
 
@@ -613,36 +616,40 @@ lastHighlightedSlot = null;
                 const tipoSlot = slot.dataset.tipo;
                 const mapUbicacion = { 'delantera':'delantero', 'trasera':'trasero' };
 
-                if(mapUbicacion[c.ubicacion.toLowerCase()]!==tipoSlot){
+                if(mapUbicacion[c.ubicacion.toLowerCase()] !== tipoSlot){
                     alert(`Este cargador es ${c.ubicacion} y no puede colocarse aquí.`);
                 } else {
 
+                    // quitar si ya estaba en otro slot
                     document.querySelectorAll('.slot').forEach(s=>{
-                        if(s.dataset.asignado===c.nombre){
-                            s.textContent='';
-                            s.style.background='#eee';
-                            s.dataset.asignado='';
+                        if(s.dataset.asignado === c.nombre){
+                            s.textContent = '';
+                            s.style.background = '#eee';
+                            s.dataset.asignado = '';
                         }
                     });
 
-                    slot.textContent=c.nombre;
+                    // asignar al nuevo slot
+                    slot.textContent = c.nombre;
                     ajustarTextoEnSlot(slot);
-                    slot.style.background=c.colorTunica;
-                    slot.style.color='black';
-                    slot.dataset.asignado=c.nombre;
+                    slot.style.background = c.colorTunica;
+                    slot.style.color = 'black';
+                    slot.dataset.asignado = c.nombre;
 
                     guardarSlots();
                 }
             }
 
-            // quitar resaltado
+            // limpiar highlights
             document.querySelectorAll('.slot').forEach(s => s.classList.remove('highlight'));
             lastHighlightedSlot = null;
 
-            li.style.position='';
-            li.style.left='';
-            li.style.top='';
-            li.style.zIndex='';
+            // resetear estilo del li
+            li.style.position = '';
+            li.style.left = '';
+            li.style.top = '';
+            li.style.zIndex = '';
+            li.style.pointerEvents = '';
 
             draggedIndex = null;
 

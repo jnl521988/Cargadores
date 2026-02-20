@@ -724,7 +724,7 @@ function exportPDF() {
     doc.setFont("helvetica", "normal");
 
     // Cabecera de tabla
-    const headers = ["Nº", "Nombre", "Edad", "Teléfono", "Estatura", "Color", "Ubicación"];
+    const headers = ["Nº", "Nombre", "Edad", "Teléfono", "Estatura", "Túnica", "Ubicación"];
     const colWidths = [10, 50, 25, 35, 25, 25, 25]; // aprox en mm
     let x = margin;
 
@@ -826,6 +826,7 @@ function exportMapJPG() {
         document.body.removeChild(tempContainer);
     });
 }
+
 
 
 

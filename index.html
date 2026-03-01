@@ -9,8 +9,23 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
+<div id="login"class="login-screen">
+    <h2>ACCESO GESTIÓN CARGADORES</h2>
+
+    <input type="text" id="usuario" placeholder="Usuario"><br><br>
+    <input type="password" id="password" placeholder="Contraseña"><br><br>
+
+    <button onclick="login()">Entrar</button>
+
+    <p id="errorLogin" style="color:red;"></p>
+</div>
+<div id="app" style="display:none;">
+
     <header>
-        <h1>GESTIÓN DE CARGADORES DEL PASO<br>(COFRADÍA DE JESÚS NAZARENO Y ÁNIMAS DE LA CAMPANILLA)</h1>
+        <button onclick="logout()" class="btn-salir">SALIR</button>
+        <div class="cabecera">
+        <img src="logo.jpg" alt="Escudo Cofradía" class="logo">
+        <h1>GESTIÓN DE CARGADORES DEL PASO<br>(COFRADÍA DE JESÚS NAZARENO Y ÁNIMAS DE LA CAMPANILLA)</h1></div>
         <nav>
           <nav>
     <button class="nav-btn" onclick="showSection('cargadores')">CARGADORES</button>
@@ -18,6 +33,13 @@
     <button class="nav-btn" onclick="showSection('paso')">DATOS DEL PASO</button>
     <button class="export-btn" onclick="exportPDF()">EXPORTAR PDF</button>
     <button class="export-btn" onclick="exportMapJPG()">EXPORTAR MAPA JPG</button>
+    <button class="backup-btn" onclick="exportData()">EXPORTAR DATOS</button>
+
+<button class="backup-btn" onclick="document.getElementById('importFile').click()">
+    IMPORTAR DATOS
+</button>
+
+<input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
 </nav>
 
         </nav>
@@ -98,6 +120,10 @@
                 <input type="text" id="nombrePaso" required>
             </div>
             <div class="form-group">
+                <label>Jefe de Horquilla</label>
+                <input type="text" id="jefeHorquilla" placeholder="Nombre del responsable">
+            </div>
+            <div class="form-group">
                 <label>Fecha de Ejecución</label>
                 <input type="text" id="fechaPaso" placeholder="Ej: 2026" required>
             </div>
@@ -137,9 +163,8 @@
             </div>
         </form>
     </section>
-
+</div>
 <script src="script.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 </body>
 </html>

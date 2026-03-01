@@ -282,3 +282,68 @@ body.dragging-active {
     background-color: #d2b850; /* verde más oscuro */
     transform: scale(1.05); /* efecto de agrandamiento al pasar mouse */
 }
+.backup-btn {
+    background-color: #a04848;
+    color: white;
+    margin: 5px;
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.backup-btn:hover {
+    background-color: #d248c4;
+}
+.cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.logo {
+    width: 80px;
+    height: auto;
+}
+
+.cabecera h1 {
+    margin: 0;
+    text-align: center;
+}
+
+.btn-salir {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    padding: 8px 15px;
+    background-color: #ba5fd8;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-salir:hover {
+    background-color: #c779e2;
+}
+.login-screen {
+    background-image: url("fondo"); /* tu imagen */
+    background-size: cover;       /* ocupa toda la pantalla */
+    background-position: center;  /* centrada */
+    background-repeat: no-repeat;
+
+    height: 100vh;
+    width: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#login {
+    text-align: center;
+    background: rgba(0, 0, 0, 0.5); /* fondo oscuro transparente */
+    padding: 30px;
+    border-radius: 10px;
+    color: white;
+}

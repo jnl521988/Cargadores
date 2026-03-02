@@ -336,9 +336,9 @@ body.dragging-active {
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
 
-    background-image: url("fondo.jpg"); /* Solo en login */
-    background-size: cover;
-    background-position: center;
+    background-image: url("logo.jpg"); /* Solo en login */
+    background-size: contain;
+    background-position: center center;
     background-repeat: no-repeat;
 
     display: flex;
@@ -351,12 +351,12 @@ body.dragging-active {
     width: 320px;
     padding: 30px;
 
-    background: rgba(0, 0, 0, 0.4); /* transparencia */
+    background: rgba(0, 0, 0, 0.05); /* transparencia */
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 
     border-radius: 15px;
-    border: 1px solid rgba(255,255,255,0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 8px 25px rgba(0,0,0,0.5);
 
     text-align: center;
@@ -386,7 +386,7 @@ body.dragging-active {
     letter-spacing: 1.5px;
     font-weight: bold;
     text-transform: uppercase;
-    color: #ffffff;
+    color: #8841c6;
     text-shadow: 0 2px 8px rgba(0,0,0,0.8);
 }
 
@@ -402,11 +402,11 @@ body.dragging-active {
     margin-bottom: 15px;
 
     background: rgba(255,255,255,0.2);
-    color: white;
+    color: rgb(15, 14, 14);
 }
 
 #login input::placeholder {
-    color: #ddd;
+    color: #000000;
 }
 
 #login input:focus {
@@ -436,6 +436,7 @@ body.dragging-active {
 }
 @media (max-width: 768px) {
     .login-screen {
-        background-image: url("fondo-mobile.jpg");
+        background-size: 120% auto; /* más grande para cubrir móviles */
+        background-position: center top;
     }
 }

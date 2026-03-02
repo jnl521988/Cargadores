@@ -5,7 +5,7 @@ body {
     font-family: 'Segoe UI', sans-serif;
     margin:0;
     padding:0;
-    background: #d7d3d3;
+    background: #b8b1b1;
 }
 
 /* =========================
@@ -327,23 +327,110 @@ body.dragging-active {
 .btn-salir:hover {
     background-color: #c779e2;
 }
-.login-screen {
-    background-image: url("fondo"); /* tu imagen */
-    background-size: cover;       /* ocupa toda la pantalla */
-    background-position: center;  /* centrada */
-    background-repeat: no-repeat;
 
+/* =========================
+   LOGIN SCREEN
+========================= */
+.login-screen {
     height: 100vh;
-    width: 100%;
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+
+    background-image: url("fondo.jpg"); /* Solo en login */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 
     display: flex;
     justify-content: center;
     align-items: center;
 }
+
+/* CUADRO TRANSPARENTE */
 #login {
-    text-align: center;
-    background: rgba(0, 0, 0, 0.5); /* fondo oscuro transparente */
+    width: 320px;
     padding: 30px;
-    border-radius: 10px;
+
+    background: rgba(0, 0, 0, 0.4); /* transparencia */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+
+    text-align: center;
     color: white;
+
+    animation: fadeIn 0.6s ease;
+}
+
+/* ANIMACIÓN SUAVE */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================
+   TITULO LOGIN
+========================= */
+#login h2 {
+    font-size: 26px;
+    margin-bottom: 25px;
+    letter-spacing: 1.5px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #ffffff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+}
+
+/* =========================
+   INPUTS LOGIN
+========================= */
+#login input {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: none;
+    margin-bottom: 15px;
+
+    background: rgba(255,255,255,0.2);
+    color: white;
+}
+
+#login input::placeholder {
+    color: #ddd;
+}
+
+#login input:focus {
+    outline: none;
+    box-shadow: 0 0 5px #3498db;
+}
+
+/* =========================
+   BOTON LOGIN
+========================= */
+#login button {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 10px;
+    border: none;
+    background: #3498db;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#login button:hover {
+    background: #2980b9;
+    transform: scale(1.02);
 }

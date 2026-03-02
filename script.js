@@ -956,3 +956,8 @@ function logout() {
     location.reload();
 }
 
+function login() {
+    // ... validación de usuario/contraseña ...
+    document.querySelector('.login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+}

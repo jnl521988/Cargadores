@@ -434,3 +434,8 @@ body.dragging-active {
     background: #2980b9;
     transform: scale(1.02);
 }
+@media (max-width: 768px) {
+    .login-screen {
+        background-image: url("fondo-mobile.jpg");
+    }
+}

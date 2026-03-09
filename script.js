@@ -924,40 +924,73 @@ function importData(event) {
 const USER = "Cofradia";
 const PASS = "Nazareno";
 
+
 // 🔐 LOGIN
 function login() {
-    const user = document.getElementById("usuario").value;
-    const pass = document.getElementById("password").value;
 
+    const user = document.getElementById("usuario").value.trim();
+    const pass = document.getElementById("password").value.trim();
+
+    // comprobar campos vacíos
+    if (user === "" || pass === "") {
+        document.getElementById("errorLogin").innerText = "Introduce usuario y contraseña";
+        return;
+    }
+
+    // comprobar usuario y contraseña correctos
     if (user === USER && pass === PASS) {
+
         localStorage.setItem("logged", "true");
 
-        document.getElementById("login").style.display = "none";
+        // ocultar pantalla de login
+        document.querySelector(".login-screen").style.display = "none";
+
+        // mostrar la app
         document.getElementById("app").style.display = "block";
+
     } else {
+
         document.getElementById("errorLogin").innerText = "Usuario o contraseña incorrectos";
+
     }
 }
 
-// 🔐 AUTO LOGIN
+
+// 🔐 AUTO LOGIN (cuando se abre la página)
 window.onload = function() {
+
     if (localStorage.getItem("logged") === "true") {
-        document.getElementById("login").style.display = "none";
+
+        // ocultar login
+        document.querySelector(".login-screen").style.display = "none";
+
+        // mostrar app
         document.getElementById("app").style.display = "block";
+
     } else {
-        document.getElementById("login").style.display = "block";
+
+        // mostrar login
+        document.querySelector(".login-screen").style.display = "flex";
+
+        // ocultar app
         document.getElementById("app").style.display = "none";
+
     }
-}
 
-// 🔐 LOGOUT (opcional)
+};
+
+
+// 🔐 LOGOUT
 function logout() {
-    localStorage.removeItem("logged");
-    location.reload();
-}
 
-function login() {
-    // ... validación de usuario/contraseña ...
-    document.querySelector('.login-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
+    // eliminar sesión guardada
+    localStorage.removeItem("logged");
+
+    // recargar página
+    location.reload();
+
+}
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js")
+    .then(() => console.log("Service Worker registrado"));
 }

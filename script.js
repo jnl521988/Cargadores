@@ -996,10 +996,10 @@ if ('serviceWorker' in navigator) {
 
     navigator.serviceWorker.register('service-worker.js')
       .then(function(reg) {
-        console.log("Service Worker registrado:", reg);
+        console.log("Service Worker registrado");
       })
       .catch(function(err) {
-        console.log("Error registrando Service Worker:", err);
+        console.log("Error:", err);
       });
 
   });

@@ -1,6 +1,6 @@
 // ------------------------
 // VARIABLES GLOBALES
-// ------------------------z
+// ------------------------
 let chargers = [];
 let editIndex = null;
 let draggedIndex = null;
@@ -990,7 +990,18 @@ function logout() {
     location.reload();
 
 }
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js")
-    .then(() => console.log("Service Worker registrado"));
+if ('serviceWorker' in navigator) {
+
+  window.addEventListener('load', function() {
+
+    navigator.serviceWorker.register('service-worker.js')
+      .then(function(reg) {
+        console.log("Service Worker registrado:", reg);
+      })
+      .catch(function(err) {
+        console.log("Error registrando Service Worker:", err);
+      });
+
+  });
+
 }

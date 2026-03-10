@@ -1,16 +1,20 @@
-const CACHE_NAME = "cargadores-app";
+const CACHE_NAME = "Cargadores";
 
 const urlsToCache = [
-  "/",
   "index.html",
   "style.css",
-  "script.js"
+  "script.js",
+  "manifest.json",
+  "icon192.png",
+  "icon512.png"
 ];
 
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+      .then(cache => {
+        return cache.addAll(urlsToCache);
+      })
   );
 });
 
